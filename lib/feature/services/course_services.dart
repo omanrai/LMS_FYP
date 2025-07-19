@@ -2,13 +2,16 @@
 
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:get/get.dart' as token;
+import '../../core/constant/api_url.dart';
 import '../../core/helpers/internet_connection.dart';
+import '../controller/auth/login_controller.dart';
 import '../model/api_response_model.dart';
 import '../model/course/course_model.dart';
 
 class CourseService {
-  static const String baseUrl = 'http://192.168.43.105:3000';
   static const String courseListEndpoint = '/course';
   static const String createCourseEndpoint = '/course';
   static const String updateCourseEndpoint = '/course';
@@ -17,19 +20,26 @@ class CourseService {
   static const Duration timeoutDuration = Duration(seconds: 30);
   static late Dio _dio;
 
+  final LoginController loginController = token.Get.find<LoginController>();
+
   // Initialize Dio instance
-  static void _initializeDio() {
+  void _initializeDio() {
+    String authToken = loginController.user.value!.token;
+    log('Auth token found: $authToken');
+
     _dio = Dio(
       BaseOptions(
-        baseUrl: baseUrl,
+        baseUrl: BASE_API,
         connectTimeout: timeoutDuration,
         receiveTimeout: timeoutDuration,
         sendTimeout: timeoutDuration,
-        headers: {'Accept': 'application/json'},
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
       ),
     );
 
-    // Add interceptors for logging (optional)
     _dio.interceptors.add(
       LogInterceptor(
         requestBody: true,
@@ -53,7 +63,7 @@ class CourseService {
       }
 
       // Initialize Dio if not already done
-      _initializeDio();
+      CourseService()._initializeDio();
 
       final response = await _dio.get(
         courseListEndpoint,
@@ -137,7 +147,7 @@ class CourseService {
       }
 
       // Initialize Dio if not already done
-      _initializeDio();
+      CourseService()._initializeDio();
 
       // Validate required fields
       if (title.isEmpty || description.isEmpty) {
@@ -257,7 +267,7 @@ class CourseService {
       }
 
       // Initialize Dio if not already done
-      _initializeDio();
+      CourseService()._initializeDio();
 
       // Validate required fields
       if (courseId.isEmpty || title.isEmpty || description.isEmpty) {
@@ -377,7 +387,7 @@ class CourseService {
       }
 
       // Initialize Dio if not already done
-      _initializeDio();
+      CourseService()._initializeDio();
 
       // Validate required fields
       if (courseId.isEmpty) {
@@ -531,19 +541,5 @@ class CourseService {
           message: 'Network error occurred: ${e.message}',
         );
     }
-  }
-
-  // Set authentication token
-  static void setAuthToken(String token) {
-    if (_dio.options.headers.containsKey('Authorization')) {
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-    } else {
-      _dio.options.headers.addAll({'Authorization': 'Bearer $token'});
-    }
-  }
-
-  // Clear authentication token
-  static void clearAuthToken() {
-    _dio.options.headers.remove('Authorization');
   }
 }

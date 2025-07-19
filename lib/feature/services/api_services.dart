@@ -2,14 +2,13 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'dart:io';
+import '../../core/constant/api_url.dart';
 import '../../core/helpers/internet_connection.dart';
 import '../model/api_response_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.43.105:3000';
   static const String registerEndpoint = '/authentication/register';
   static const String loginEndpoint = '/authentication/login';
-
   static const Duration timeoutDuration = Duration(seconds: 30);
 
   static late Dio _dio;
@@ -18,7 +17,7 @@ class ApiService {
   static void _initializeDio() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: baseUrl,
+        baseUrl: BASE_API,
         connectTimeout: timeoutDuration,
         receiveTimeout: timeoutDuration,
         sendTimeout: timeoutDuration,

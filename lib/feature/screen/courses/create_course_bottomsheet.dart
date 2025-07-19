@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utility/model/image_picker_utils.dart';
-import '../../controller/course_controller.dart';
+import '../../controller/course/course_controller.dart';
 
 class AddCourseBottomSheet extends StatefulWidget {
   final CourseController courseController;

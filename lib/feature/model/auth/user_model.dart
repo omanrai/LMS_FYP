@@ -1,25 +1,33 @@
+import 'dart:developer';
+
 class UserModel {
   final String id;
   final String email;
-  final String? name;
+  final String name;
   final String? image;
   final String role;
+  final String token;
 
   UserModel({
     required this.id,
     required this.email,
-    this.name,
+    required this.name,
     this.image,
     required this.role,
+    required this.token,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final userJson = json['user'] ?? json;
+    log("user json in user model : $userJson");
+
     return UserModel(
-      id: json['_id'] ?? '',
-      email: json['email'] ?? '',
-      name: json['name'] ?? 'Default Name',
-      image: json['image'] ?? 'assets/logo.jpg',
-      role: json['role'] ?? '',
+      id: userJson['_id'] ?? '',
+      email: userJson['email'] ?? '',
+      name: userJson['name'] ?? 'Default Name',
+      image: userJson['image'] ?? 'assets/logo.png',
+      role: userJson['role'] ?? '',
+      token: json['accessToken'], // top-level token
     );
   }
 
@@ -30,6 +38,7 @@ class UserModel {
       'name': name,
       'image': image,
       'role': role,
+      'accessToken': token, // Include token when serializing
     };
   }
 }

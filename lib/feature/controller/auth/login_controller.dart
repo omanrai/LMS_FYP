@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../model/auth/user_model.dart';
 import '../../screen/main_screen.dart';
 import '../../services/api_services.dart';
+import '../../services/course_services.dart';
 
 class LoginController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -69,16 +70,13 @@ class LoginController extends GetxController {
       );
 
       if (response.success && response.data != null) {
-        final userJson = response.data!['user'];
-        final token = response.data!['accessToken'];
-
         // Parse user into UserModel
-        user.value = UserModel.fromJson(userJson);
+        user.value = UserModel.fromJson(response.data!);
 
         // Log values
-        log('Access Token: $token');
-        log('Name: ${user.value!.name}');
-        log('Email: ${user.value!.email}');
+        log('Name from login controller: ${user.value!.name}');
+        log('Email from login controller: ${user.value!.email}');
+        log('token from login controller: ${user.value!.token}');
 
         // Save UserModel using Get.put so it's accessible globally
         Get.put<UserModel>(user.value!, permanent: true);

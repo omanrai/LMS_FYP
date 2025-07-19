@@ -22,7 +22,7 @@ class LoginScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Image.asset('assets/logo.jpg', width: 150, height: 150),
+            Image.asset('assets/logo.png', width: 150, height: 150),
             const SizedBox(height: 16),
 
             Form(

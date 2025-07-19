@@ -5,9 +5,10 @@ import 'package:flutter_fyp/feature/screen/courses/edit_course.dart';
 import 'package:get/get.dart';
 
 import '../../../core/utility/model/dialog_utils.dart';
-import '../../controller/course_controller.dart';
+import '../../controller/course/course_controller.dart';
 import '../../model/course/course_model.dart';
 import 'create_course_bottomsheet.dart';
+import 'view_course.dart';
 
 class CourseScreen extends StatefulWidget {
   const CourseScreen({Key? key}) : super(key: key);
@@ -36,12 +37,6 @@ class _CourseScreenState extends State<CourseScreen> {
 
   void _addCourse() {
     AddCourseBottomSheet.show(context, courseController);
-  }
-
-  void _onCourseClick(CourseModel course) {
-    // Navigate to course details
-    courseController.selectCourse(course);
-    print('Course clicked: ${course.title}');
   }
 
   Widget build(BuildContext context) {
@@ -458,7 +453,9 @@ class _CourseScreenState extends State<CourseScreen> {
 
   Widget _buildCourseCard(CourseModel course) {
     return GestureDetector(
-      onTap: () => _onCourseClick(course),
+      onTap: () {
+        Get.to(() => ViewCourseScreen(course: course));
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -522,7 +519,7 @@ class _CourseScreenState extends State<CourseScreen> {
                         const SizedBox(width: 34),
                         IconButton(
                           icon: const Icon(
-                            Icons.delete,
+                            Icons.edit,
                             color: Colors.white,
                             size: 18,
                           ),

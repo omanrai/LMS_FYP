@@ -4,11 +4,12 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../core/utility/model/dialog_utils.dart';
-import '../model/course/course_model.dart';
-import '../model/api_response_model.dart';
-import '../screen/widget/dismiss_dialog.dart';
-import '../services/course_services.dart';
+import '../../../core/utility/model/dialog_utils.dart';
+import '../../model/course/course_model.dart';
+import '../../model/api_response_model.dart';
+import '../../screen/widget/dismiss_dialog.dart';
+import '../../services/course_services.dart';
+import '../auth/login_controller.dart';
 
 enum CourseLoadingState {
   initial,
@@ -51,10 +52,15 @@ class CourseController extends GetxController {
       _courses.fold(0, (sum, course) => sum + course.lessons.length);
   int get activeCourses => _courses.length; // Assuming all courses are active
 
+  late String token;
+
   @override
   void onInit() {
     super.onInit();
     // initialize();
+    final LoginController loginController = Get.find<LoginController>();
+    final user = loginController.user.value;
+    token = user!.token;
   }
 
   String? validateTitle(String? value) {
