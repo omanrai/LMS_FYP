@@ -1,8 +1,10 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fyp/feature/screen/courses/edit_course.dart';
 import 'package:get/get.dart';
 
+import '../../../core/utility/model/dialog_utils.dart';
 import '../../controller/course_controller.dart';
 import '../../model/course/course_model.dart';
 import 'create_course_bottomsheet.dart';
@@ -493,8 +495,8 @@ class _CourseScreenState extends State<CourseScreen> {
                         topLeft: Radius.circular(16),
                         topRight: Radius.circular(16),
                       ),
-                      child: course.image != null
-                          ? Image.network(course.image!, fit: BoxFit.cover)
+                      child: course.coverImage != null
+                          ? Image.network(course.coverImage!, fit: BoxFit.cover)
                           : Image.asset("assets/logo.png", fit: BoxFit.cover),
                     ),
                   ),
@@ -518,25 +520,42 @@ class _CourseScreenState extends State<CourseScreen> {
                           ),
                         ),
                         const SizedBox(width: 34),
-
                         IconButton(
                           icon: const Icon(
                             Icons.delete,
                             color: Colors.white,
                             size: 18,
                           ),
+                          onPressed: () {
+                            Get.to(() => EditCourseScreen(course: course));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 0,
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                           onPressed: () async {
-                            // Show confirmation dialog
-                            final bool shouldDelete = await courseController
-                                .showConfirmDialog(
-                                  title: 'Delete Course',
-                                  message:
-                                      'Are you sure you want to delete "${course.title}"? This action cannot be undone.',
-                                  confirmText: 'Delete',
-                                  cancelText: 'Cancel',
-                                );
+                            final shouldEdit = await DialogUtils.showConfirmDialog(
+                              title: 'Delete Course',
+                              message:
+                                  'Are you sure you want to delete "${course.title}"? This action cannot be undone.',
+                              confirmText: 'Delete',
+                              cancelText: 'Cancel',
+                              icon: Icons.delete,
+                              isDangerous: true,
+                            );
 
-                            if (shouldDelete) {
+                            if (shouldEdit) {
                               final isDeleted = await courseController
                                   .deleteCourse(course.id);
                               log(
@@ -545,16 +564,14 @@ class _CourseScreenState extends State<CourseScreen> {
                             }
                           },
                         ),
+
+                        // SizedBox(width: 8),
+                        // Icon(
+                        //   Icons.arrow_forward_ios,
+                        //   color: Colors.white,
+                        //   size: 14,
+                        // ),
                       ],
-                    ),
-                  ),
-                  const Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white,
-                      size: 14,
                     ),
                   ),
                 ],

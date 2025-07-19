@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utility/model/image_picker_utils.dart';
 import '../../controller/course_controller.dart';
 
@@ -74,8 +75,7 @@ class _AddCourseBottomSheetState extends State<AddCourseBottomSheet> {
     log('Course creation result: $isCourseAdded');
 
     if (isCourseAdded) {
-      // Close the bottom sheet immediately
-      Future.delayed(const Duration(seconds: 2), () => Navigator.pop(context));
+      Navigator.pop(context);
     } else {
       // Show error message
       Get.snackbar(
@@ -362,7 +362,7 @@ class _AddCourseBottomSheetState extends State<AddCourseBottomSheet> {
                                             padding: const EdgeInsets.symmetric(
                                               vertical: 12,
                                             ),
-                                            backgroundColor: Colors.blue,
+                                            backgroundColor: primaryColor,
                                             foregroundColor: Colors.white,
                                           ),
                                         ),
@@ -402,7 +402,7 @@ class _AddCourseBottomSheetState extends State<AddCourseBottomSheet> {
                               ? null
                               : _handleCreateCourse,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
+                            backgroundColor: primaryColor,
                             foregroundColor: Colors.white,
                             elevation: 3,
                             shadowColor: const Color(

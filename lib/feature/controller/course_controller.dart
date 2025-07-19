@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/utility/model/dialog_utils.dart';
 import '../model/course/course_model.dart';
 import '../model/api_response_model.dart';
 import '../screen/widget/dismiss_dialog.dart';
@@ -98,6 +99,11 @@ class CourseController extends GetxController {
     }
   }
 
+  // Refresh courses (pull to refresh)
+  Future<void> refreshCourses() async {
+    await fetchCourses(showLoading: false);
+  }
+
   // Fetch all courses
   Future<void> fetchCourses({bool showLoading = true}) async {
     FocusScope.of(Get.context!).unfocus();
@@ -130,12 +136,6 @@ class CourseController extends GetxController {
     }
   }
 
-  // Refresh courses (pull to refresh)
-  Future<void> refreshCourses() async {
-    await fetchCourses(showLoading: false);
-  }
-
-  // Create a new course - FIXED VERSION
   Future<bool> createCourse() async {
     FocusScope.of(Get.context!).unfocus();
 
@@ -143,12 +143,24 @@ class CourseController extends GetxController {
       return false;
     }
 
+    // Show confirmation dialog before creating
+    final shouldCreate = await DialogUtils.showConfirmDialog(
+      title: 'Create Course',
+      message: 'Are you sure you want to create this course?',
+      confirmText: 'Create',
+      cancelText: 'Cancel',
+      icon: Icons.add_circle,
+    );
+
+    if (!shouldCreate) return false;
+
     log('Creating course: ${titleController.text.trim()}');
     log('Description: ${descriptionController.text.trim()}');
     log('Selected Image: ${selectedImage.value?.path ?? 'No image selected'}');
 
     try {
-      _setLoadingState(CourseLoadingState.creating);
+      DialogUtils.showLoadingDialog(message: 'Creating course...');
+      await Future.delayed(const Duration(seconds: 2));
 
       final ApiResponse<CourseModel> response =
           await CourseService.createCourse(
@@ -157,29 +169,135 @@ class CourseController extends GetxController {
             image: selectedImage.value?.path,
           );
 
+      DialogUtils.hideDialog(); // Hide loading dialog
+
       if (response.success && response.data != null) {
-        // Add the new course to the list ONLY
         _courses.insert(0, response.data!);
         _setLoadingState(CourseLoadingState.loaded);
         log('Successfully created course: ${response.data!.title}');
 
         showSuccessMessage('Course created successfully');
-
-        // Clear form data
         _clearFormData();
-
         return true;
       } else {
-        _setError(response.message ?? 'Failed to create course');
+        DialogUtils.showErrorDialog(
+          title: 'Creation Failed',
+          message: response.message ?? 'Failed to create course',
+        );
         return false;
       }
     } catch (e) {
-      _setError(
-        'An unexpected error occurred while creating course: ${e.toString()}',
+      DialogUtils.hideDialog(); // Hide loading dialog
+      DialogUtils.showErrorDialog(
+        title: 'Creation Failed',
+        message:
+            'An unexpected error occurred while creating course: ${e.toString()}',
       );
       return false;
     }
   }
+
+  Future<bool> updateCourse(
+    String courseId,
+    String title,
+    String description, {
+    String? imagePath,
+  }) async {
+    // Show confirmation dialog before updating
+    final shouldUpdate = await DialogUtils.showConfirmDialog(
+      title: 'Update Course',
+      message: 'Are you sure you want to update this course?',
+      confirmText: 'Update',
+      cancelText: 'Cancel',
+      icon: Icons.edit,
+    );
+
+    if (!shouldUpdate) return false;
+
+    try {
+      DialogUtils.showLoadingDialog(message: 'Updating course...');
+
+      await Future.delayed(const Duration(seconds: 2));
+
+      log('Updating course: $courseId');
+      final ApiResponse<CourseModel> response =
+          await CourseService.updateCourse(
+            courseId,
+            title,
+            description,
+            imagePath: imagePath,
+          );
+
+      DialogUtils.hideDialog(); // Hide loading dialog
+
+      if (response.success && response.data != null) {
+        final index = _courses.indexWhere((course) => course.id == courseId);
+        if (index != -1) {
+          _courses[index] = response.data!;
+        }
+        _setLoadingState(CourseLoadingState.loaded);
+        log('Successfully updated course: ${response.data!.title}');
+
+        showSuccessMessage('Course updated successfully');
+        return true;
+      } else {
+        DialogUtils.showErrorDialog(
+          title: 'Update Failed',
+          message: response.message ?? 'Failed to update course',
+        );
+        return false;
+      }
+    } catch (e) {
+      DialogUtils.hideDialog(); // Hide loading dialog
+      DialogUtils.showErrorDialog(
+        title: 'Update Failed',
+        message:
+            'An unexpected error occurred while updating course: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  Future<bool> deleteCourse(String courseId) async {
+    try {
+      DialogUtils.showLoadingDialog(message: 'Deleting course...');
+
+      log('Deleting course: $courseId');
+
+      await Future.delayed(Duration(seconds: 2));
+
+      final ApiResponse<bool> response = await CourseService.deleteCourse(
+        courseId,
+      );
+
+      DialogUtils.hideDialog(); // Hide loading dialog
+
+      if (response.success) {
+        _courses.removeWhere((course) => course.id == courseId);
+        _setLoadingState(CourseLoadingState.loaded);
+        log('Successfully deleted course: $courseId');
+
+        showSuccessMessage('Course deleted successfully');
+        return true;
+      } else {
+        DialogUtils.showErrorDialog(
+          title: 'Delete Failed',
+          message: response.message ?? 'Failed to delete course',
+        );
+        return false;
+      }
+    } catch (e) {
+      DialogUtils.hideDialog(); // Hide loading dialog
+      DialogUtils.showErrorDialog(
+        title: 'Delete Failed',
+        message:
+            'An unexpected error occurred while deleting course: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  // Create a new course - FIXED VERSION
 
   // Clear form data
   void _clearFormData() {
@@ -202,93 +320,6 @@ class CourseController extends GetxController {
         borderRadius: 8,
       );
     });
-  }
-
-  // Update an existing course
-  Future<bool> updateCourse(
-    String courseId,
-    String title,
-    String description, {
-    String? imagePath,
-  }) async {
-    try {
-      _setLoadingState(CourseLoadingState.updating);
-
-      log('Updating course: $courseId');
-      final ApiResponse<CourseModel> response =
-          await CourseService.updateCourse(
-            courseId,
-            title,
-            description,
-            imagePath: imagePath,
-          );
-
-      if (response.success && response.data != null) {
-        // Update the course in the list
-        final index = _courses.indexWhere((course) => course.id == courseId);
-        if (index != -1) {
-          _courses[index] = response.data!;
-        }
-        _setLoadingState(CourseLoadingState.loaded);
-        log('Successfully updated course: ${response.data!.title}');
-
-        // Show success message
-        showSuccessMessage('Course updated successfully');
-
-        return true;
-      } else {
-        _setError(response.message ?? 'Failed to update course');
-        return false;
-      }
-    } catch (e) {
-      _setError(
-        'An unexpected error occurred while updating course: ${e.toString()}',
-      );
-      return false;
-    }
-  }
-
-  // Delete a course
-  Future<bool> deleteCourse(String courseId) async {
-    try {
-      // Show non-dismissible loading dialog
-      showNonDismissibleLoadingDialog('Deleting course...');
-
-      log('Deleting course: $courseId');
-      final ApiResponse<bool> response = await CourseService.deleteCourse(
-        courseId,
-      );
-
-      // Hide loading dialog
-      if (Get.isDialogOpen!) {
-        Get.back();
-      }
-
-      if (response.success) {
-        // Remove the course from the list
-        _courses.removeWhere((course) => course.id == courseId);
-        _setLoadingState(CourseLoadingState.loaded);
-        log('Successfully deleted course: $courseId');
-
-        // Show success message
-        showSuccessMessage('Course deleted successfully');
-
-        return true;
-      } else {
-        _setError(response.message ?? 'Failed to delete course');
-        return false;
-      }
-    } catch (e) {
-      // Hide loading dialog if still open
-      if (Get.isDialogOpen!) {
-        Get.back();
-      }
-
-      _setError(
-        'An unexpected error occurred while deleting course: ${e.toString()}',
-      );
-      return false;
-    }
   }
 
   // Select a course
@@ -333,8 +364,6 @@ class CourseController extends GetxController {
     }).toList();
   }
 
-
-
   // Reset controller
   void reset() {
     _courses.clear();
@@ -353,9 +382,6 @@ class CourseController extends GetxController {
     log('============================');
   }
 
-
-
-
   // Show error dialog
   void showErrorDialog(String message) {
     Get.defaultDialog(
@@ -366,26 +392,6 @@ class CourseController extends GetxController {
       buttonColor: Get.theme.primaryColor,
       onConfirm: () => Get.back(),
     );
-  }
-
-  // Show confirmation dialog
-  Future<bool> showConfirmDialog({
-    required String title,
-    required String message,
-    String confirmText = 'Yes',
-    String cancelText = 'No',
-  }) async {
-    return await Get.defaultDialog<bool>(
-          title: title,
-          middleText: message,
-          textConfirm: confirmText,
-          textCancel: cancelText,
-          confirmTextColor: Get.theme.colorScheme.onPrimary,
-          buttonColor: Get.theme.primaryColor,
-          onConfirm: () => Get.back(result: true),
-          onCancel: () => Get.back(result: false),
-        ) ??
-        false;
   }
 
   @override

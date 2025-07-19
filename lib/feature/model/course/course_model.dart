@@ -4,7 +4,7 @@ class CourseModel {
   final String id;
   final String title;
   final String description;
-  final String? image;
+  final String? coverImage;
   final List<dynamic> lessons; // You can create a Lesson class later
   final int version;
 
@@ -12,7 +12,7 @@ class CourseModel {
     required this.id,
     required this.title,
     required this.description,
-    this.image,
+    this.coverImage,
     required this.lessons,
     required this.version,
   });
@@ -23,7 +23,7 @@ class CourseModel {
       id: json['_id'] ?? '',
       title: json['title'] ?? '',
       description: json['description'] ?? '',
-      image: json['image'] ?? '',
+      coverImage: json['image'] ?? '',
       lessons: json['lessons'] ?? [],
       version: json['__v'] ?? 0,
     );
@@ -35,7 +35,7 @@ class CourseModel {
       '_id': id,
       'title': title,
       'description': description,
-      'image': image,
+      'image': coverImage,
       'lessons': lessons,
       '__v': version,
     };
@@ -54,7 +54,7 @@ class CourseModel {
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
-      image: image ?? this.image,
+      coverImage: image ?? this.coverImage,
       lessons: lessons ?? this.lessons,
       version: version ?? this.version,
     );

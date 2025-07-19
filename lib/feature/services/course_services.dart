@@ -287,7 +287,7 @@ class CourseService {
         final file = File(imagePath);
         formData.files.add(
           MapEntry(
-            'image',
+            'coverImage',
             await MultipartFile.fromFile(
               file.path,
               filename: file.path.split('/').last,
