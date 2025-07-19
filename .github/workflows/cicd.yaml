@@ -1,0 +1,133 @@
+# .github/workflows/flutter-ci-cd.yml
+name: Flutter CI/CD
+
+on:
+  push:
+    branches:
+      - main    
+      - master    
+  pull_request:
+    branches:
+      - main     
+      - master     
+          
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Flutter APK and AAB
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    # Set up Java 17
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'zulu'
+        
+    # Set up Flutter (using latest stable to support Dart SDK ^3.7.2)
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.32.1'
+        channel: 'stable'
+        cache: true
+        
+    # Install dependencies
+    - name: Install dependencies
+      run: flutter pub get      
+      
+    # Build Debug APK
+    - name: Build Debug APK
+      run: flutter build apk --debug
+      
+    # Build Debug AAB (App Bundle)
+    - name: Build Debug AAB
+      run: flutter build appbundle --debug
+      
+    # Get app version for file naming
+    - name: Get app version
+      id: version
+      run: |
+        VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | tr -d '\r\n')
+        APP_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}' | tr -d '\r\n')
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "APP_NAME=$APP_NAME" >> $GITHUB_OUTPUT
+        echo "App: $APP_NAME, Version: $VERSION"
+        
+    # Upload Debug APK as artifact
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-apk-${{ github.run_number }}
+        path: build/app/outputs/flutter-apk/app-debug.apk
+        retention-days: 30
+        
+    # Upload Debug AAB as artifact
+    - name: Upload Debug AAB
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-aab-${{ github.run_number }}
+        path: build/app/outputs/bundle/debug/app-debug.aab
+        retention-days: 30
+        
+    # Create GitHub Release (only on push to main/master)
+    - name: Create Release
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.version.outputs.VERSION }}-debug-${{ github.run_number }}
+        name: Debug Build v${{ steps.version.outputs.VERSION }}-${{ github.run_number }}
+        body: |
+          🚀 **Debug Build Generated**
+          
+          📱 **App Name**: ${{ steps.version.outputs.APP_NAME }}
+          🏷️ **Version**: ${{ steps.version.outputs.VERSION }}
+          🌿 **Branch**: ${{ github.ref_name }}
+          📝 **Commit**: ${{ github.sha }}
+          🔨 **Build Number**: ${{ github.run_number }}
+          
+          **Files included:**
+          - 📦 Debug APK (app-debug.apk)
+          - 📦 Debug AAB (app-debug.aab)
+          
+          **Latest Changes:**
+          ${{ github.event.head_commit.message }}
+        files: |
+          build/app/outputs/flutter-apk/app-debug.apk
+          build/app/outputs/bundle/debug/app-debug.aab
+        draft: false
+        prerelease: true
+        
+    # Add PR comment with download links
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const comment = `## 🚀 Debug Build Complete!
+          
+          Your Flutter debug build has been generated successfully.
+          
+          ### 📥 Download Files:
+          Go to [Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) → Artifacts section to download:
+          - 📱 **Debug APK**: \`debug-apk-${{ github.run_number }}\`
+          - 📦 **Debug AAB**: \`debug-aab-${{ github.run_number }}\`
+          
+          **Build Info:**
+          - App: ${{ steps.version.outputs.APP_NAME }}
+          - Version: ${{ steps.version.outputs.VERSION }}
+          - Build: #${{ github.run_number }}`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
