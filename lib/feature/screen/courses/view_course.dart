@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controller/course/course_lesson_controller.dart';
 import '../../model/course/course_model.dart';
 import 'lesson/add_lesson.dart';
 
@@ -727,7 +728,13 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     return FloatingActionButton.extended(
       onPressed: () {
         // Add lesson functionality
-        Get.to(() => AddLessonScreen(course: course));
+        // Get.to(() => AddLessonScreen(course: course));
+        Get.to(
+          () => AddLessonScreen(course: course),
+          binding: BindingsBuilder(() {
+            Get.lazyPut(() => CourseLessonController());
+          }),
+        );
       },
       backgroundColor: const Color(0xFF6366F1),
       foregroundColor: Colors.white,
@@ -736,6 +743,4 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
       label: const Text('Add Lesson'),
     );
   }
-
-
 }

@@ -18,15 +18,15 @@ class AddLessonScreen extends StatefulWidget {
 class _AddLessonScreenState extends State<AddLessonScreen> {
   final CourseLessonController _controller = Get.find<CourseLessonController>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  
+
   // Form controllers are already available in the controller
   final TextEditingController _keywordInputController = TextEditingController();
-  
+
   // PDF file handling
   File? _selectedPdfFile;
   String? _selectedPdfName;
   bool _isUploading = false;
-  
+
   // Keywords management
   final List<String> _keywords = [];
 
@@ -62,10 +62,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
       elevation: 0,
       title: const Text(
         'Add New Lesson',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
@@ -76,7 +73,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
 
   Widget _buildBody() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       child: Form(
         key: _formKey,
         child: Column(
@@ -117,11 +114,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
               color: const Color(0xFF6366F1).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.book,
-              color: Color(0xFF6366F1),
-              size: 24,
-            ),
+            child: const Icon(Icons.book, color: Color(0xFF6366F1), size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -236,7 +229,10 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFEF4444)),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
@@ -336,11 +332,11 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFEF4444)),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            suffixIcon: const Icon(
-              Icons.access_time,
-              color: Color(0xFF9CA3AF),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
             ),
+            suffixIcon: const Icon(Icons.access_time, color: Color(0xFF9CA3AF)),
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
@@ -372,10 +368,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
         const SizedBox(height: 8),
         const Text(
           'Add keywords to help users find this lesson',
-          style: TextStyle(
-            fontSize: 14,
-            color: Color(0xFF6B7280),
-          ),
+          style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
         ),
         const SizedBox(height: 12),
         _buildKeywordInput(),
@@ -385,10 +378,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
           const SizedBox(height: 8),
           const Text(
             'At least one keyword is required',
-            style: TextStyle(
-              fontSize: 12,
-              color: Color(0xFFEF4444),
-            ),
+            style: TextStyle(fontSize: 12, color: Color(0xFFEF4444)),
           ),
         ],
       ],
@@ -416,9 +406,15 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6366F1),
+                  width: 2,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
             onFieldSubmitted: _addKeyword,
           ),
@@ -452,10 +448,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
         child: const Center(
           child: Text(
             'No keywords added yet',
-            style: TextStyle(
-              color: Color(0xFF9CA3AF),
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
           ),
         ),
       );
@@ -513,10 +506,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
         const SizedBox(height: 8),
         const Text(
           'Upload a PDF document for this lesson',
-          style: TextStyle(
-            fontSize: 14,
-            color: Color(0xFF6B7280),
-          ),
+          style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
         ),
         const SizedBox(height: 12),
         _buildPdfUploadWidget(),
@@ -532,8 +522,8 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
         color: const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _selectedPdfFile != null 
-              ? const Color(0xFF10B981) 
+          color: _selectedPdfFile != null
+              ? const Color(0xFF10B981)
               : const Color(0xFFE5E7EB),
           width: 2,
           style: BorderStyle.solid,
@@ -559,10 +549,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
             const SizedBox(height: 4),
             const Text(
               'Maximum file size: 10MB',
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFF9CA3AF),
-              ),
+              style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
             ),
           ] else ...[
             Icon(
@@ -593,7 +580,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
           const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: _isUploading ? null : _pickPdf,
-            icon: _isUploading 
+            icon: _isUploading
                 ? const SizedBox(
                     width: 16,
                     height: 16,
@@ -623,19 +610,12 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.error_outline,
-            color: Color(0xFFEF4444),
-            size: 20,
-          ),
+          const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _controller.errorMessage.value,
-              style: const TextStyle(
-                color: Color(0xFFEF4444),
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: Color(0xFFEF4444), fontSize: 14),
             ),
           ),
         ],
@@ -706,11 +686,11 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
 
       if (result != null && result.files.single.path != null) {
         File file = File(result.files.single.path!);
-        
+
         // Check file size (10MB limit)
         int fileSizeInBytes = await file.length();
         double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
-        
+
         if (fileSizeInMB > 10) {
           Get.snackbar(
             'Error',
@@ -752,7 +732,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
   Future<void> _submitLesson() async {
     // Clear previous messages
     _controller.clearMessages();
-    
+
     // Validate form
     if (!_formKey.currentState!.validate()) {
       return;

@@ -187,7 +187,12 @@ class CourseLessonController extends GetxController {
 
       List<String> keywords = parseKeywords(keywordsController.text);
 
-      log('Creating lesson: ${titleController.text.trim()}');
+      log('lesson title: ${titleController.text.trim()}');
+      log('Course id: $targetCourseId.toString()');
+      log('lesson description: ${descriptionController.text.trim()}');
+      log('lesson duration: ${readingDuration.toString()}');
+      log('lesson keywords: ${keywords.toString()}');
+      log('lesson pdf: ${pdfPath.toString()}');
 
       final response = await CourseLessonService.createCourseLesson(
         targetCourseId,
