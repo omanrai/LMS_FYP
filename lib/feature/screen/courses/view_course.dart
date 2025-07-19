@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../model/course/course_model.dart';
+import 'lesson/add_lesson.dart';
 
 class ViewCourseScreen extends StatefulWidget {
   final CourseModel course;
@@ -46,7 +47,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
           ),
         ],
       ),
-      floatingActionButton: _buildFloatingActionButton(),
+      floatingActionButton: _buildFloatingActionButton(widget.course),
     );
   }
 
@@ -722,23 +723,19 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     );
   }
 
-  Widget _buildFloatingActionButton() {
+  Widget _buildFloatingActionButton(CourseModel course) {
     return FloatingActionButton.extended(
       onPressed: () {
-        // Edit course functionality
-        Get.snackbar(
-          'Edit Lesson',
-          'Navigate to edit screen for ${widget.course.title}',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF6366F1),
-          colorText: Colors.white,
-        );
+        // Add lesson functionality
+        Get.to(() => AddLessonScreen(course: course));
       },
       backgroundColor: const Color(0xFF6366F1),
       foregroundColor: Colors.white,
       elevation: 8,
       icon: const Icon(Icons.edit),
-      label: const Text('Edit Course'),
+      label: const Text('Add Lesson'),
     );
   }
+
+
 }
