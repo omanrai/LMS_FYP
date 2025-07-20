@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/utility/dialog_utils.dart';
 import '../../controller/course/course_lesson_controller.dart';
 import '../../model/course/course_lesson_model.dart';
 import '../../model/course/course_model.dart';
@@ -806,8 +807,28 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                             ),
                           ),
                           IconButton(
-                            onPressed: () {
+                            onPressed: () async {
                               print('delete lesson: ${lesson.title}');
+                              final shouldEdit =
+                                  await DialogUtils.showConfirmDialog(
+                                    title: 'Delete Lesson',
+                                    message:
+                                        'Are you sure you want to delete "${lesson.title}"? This action cannot be undone.',
+                                    confirmText: 'Delete',
+                                    cancelText: 'Cancel',
+                                    icon: Icons.delete,
+                                    isDangerous: true,
+                                  );
+
+                              if (shouldEdit) {
+                                final CourseLessonController courseController =
+                                    Get.find<CourseLessonController>();
+
+                                await courseController.deleteCourseLesson(
+                                  lesson.id,
+                                  courseId: widget.course.id,
+                                );
+                              }
                             },
                             icon: const Icon(
                               Icons.delete_forever,

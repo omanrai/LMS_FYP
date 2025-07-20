@@ -13,7 +13,6 @@ import '../model/course/course_lesson_model.dart';
 
 class CourseLessonService {
   static const String courseLessonEndpoint = '/courses';
-
   static const Duration timeoutDuration = Duration(seconds: 30);
   static late Dio _dio;
 

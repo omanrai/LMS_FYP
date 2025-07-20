@@ -141,6 +141,8 @@ class RegistrationScreen extends StatelessWidget {
 
                         // Image Upload Button
                         Container(
+                          height: 60,
+                          width: 250,
                           margin: const EdgeInsets.only(bottom: 24),
                           child: ElevatedButton.icon(
                             onPressed: controller.isImageUploading.value
@@ -180,7 +182,7 @@ class RegistrationScreen extends StatelessWidget {
 
                   // Register Link
                   TextButton(
-                    onPressed: () => Get.to(() => LoginScreen()),
+                    onPressed: () => Get.offAll(() => LoginScreen()),
                     child: const Text('Already have an account? Login here'),
                   ),
 

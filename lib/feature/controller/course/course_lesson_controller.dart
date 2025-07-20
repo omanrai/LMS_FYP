@@ -376,6 +376,7 @@ class CourseLessonController extends GetxController {
 
   // Delete a lesson
   Future<bool> deleteCourseLesson(String lessonId, {String? courseId}) async {
+    log("in delete function lesson ID : $lessonId and Course ID : $courseId");
     try {
       isDeleting.value = true;
       clearMessages();

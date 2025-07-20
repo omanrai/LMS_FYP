@@ -1,14 +1,12 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_fyp/feature/screen/courses/edit_course.dart';
 import 'package:get/get.dart';
 
 import '../../../core/utility/dialog_utils.dart';
 import '../../controller/course/course_controller.dart';
 import '../../model/course/course_model.dart';
 import 'add_edit_course.dart';
-import 'create_course_bottomsheet.dart';
 import 'view_course.dart';
 
 class CourseScreen extends StatefulWidget {

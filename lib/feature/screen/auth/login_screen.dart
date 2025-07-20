@@ -107,7 +107,7 @@ class LoginScreen extends StatelessWidget {
 
                   // Register Link
                   TextButton(
-                    onPressed: () => Get.to(() => RegistrationScreen()),
+                    onPressed: () => Get.offAll(() => RegistrationScreen()),
                     child: const Text('Don\'t have an account? Register here'),
                   ),
                 ],

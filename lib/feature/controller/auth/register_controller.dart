@@ -88,7 +88,7 @@ class RegistrationController extends GetxController {
       if (response.success) {
         Get.snackbar(
           'Success',
-          response.message,
+          "Register Successfully",
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.green,
           colorText: Colors.white,
