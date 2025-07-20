@@ -4,7 +4,8 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/utility/model/dialog_utils.dart';
+import '../../../core/utility/dialog_utils.dart';
+import '../../../core/utility/snackbar.dart';
 import '../../model/course/course_model.dart';
 import '../../model/api_response_model.dart';
 import '../../screen/widget/dismiss_dialog.dart';
@@ -143,12 +144,6 @@ class CourseController extends GetxController {
   }
 
   Future<bool> createCourse() async {
-    FocusScope.of(Get.context!).unfocus();
-
-    if (!createCourseFormKey.currentState!.validate()) {
-      return false;
-    }
-
     // Show confirmation dialog before creating
     final shouldCreate = await DialogUtils.showConfirmDialog(
       title: 'Create Course',
@@ -181,14 +176,13 @@ class CourseController extends GetxController {
         _courses.insert(0, response.data!);
         _setLoadingState(CourseLoadingState.loaded);
         log('Successfully created course: ${response.data!.title}');
-
-        showSuccessMessage('Course created successfully');
+        SnackBarMessage.showSuccessMessage('Course created successfully');
         _clearFormData();
         return true;
       } else {
         DialogUtils.showErrorDialog(
           title: 'Creation Failed',
-          message: response.message ?? 'Failed to create course',
+          message: response.message,
         );
         return false;
       }
@@ -244,7 +238,7 @@ class CourseController extends GetxController {
         _setLoadingState(CourseLoadingState.loaded);
         log('Successfully updated course: ${response.data!.title}');
 
-        showSuccessMessage('Course updated successfully');
+        SnackBarMessage.showSuccessMessage('Course updated successfully');
         return true;
       } else {
         DialogUtils.showErrorDialog(
@@ -283,7 +277,7 @@ class CourseController extends GetxController {
         _setLoadingState(CourseLoadingState.loaded);
         log('Successfully deleted course: $courseId');
 
-        showSuccessMessage('Course deleted successfully');
+        SnackBarMessage.showSuccessMessage('Course deleted successfully');
         return true;
       } else {
         DialogUtils.showErrorDialog(
@@ -310,22 +304,6 @@ class CourseController extends GetxController {
     titleController.clear();
     descriptionController.clear();
     selectedImage.value = null;
-  }
-
-  // Show success message - separate method
-  void showSuccessMessage(String message) {
-    // Use a slight delay to ensure navigation completes first
-    Future.delayed(const Duration(milliseconds: 300), () {
-      Get.snackbar(
-        'Success',
-        message,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.primaryColor,
-        colorText: Get.theme.colorScheme.onPrimary,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 8,
-      );
-    });
   }
 
   // Select a course

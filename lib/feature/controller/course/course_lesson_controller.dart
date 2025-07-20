@@ -2,7 +2,9 @@
 
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter_fyp/core/utility/snackbar.dart';
 import 'package:get/get.dart';
+import '../../../core/utility/dialog_utils.dart';
 import '../../model/course/course_lesson_model.dart';
 import '../../services/course_lesson_services.dart';
 
@@ -158,7 +160,21 @@ class CourseLessonController extends GetxController {
 
   // Create a new lesson
   Future<bool> createCourseLesson({String? courseId, String? pdfPath}) async {
+    final shouldCreate = await DialogUtils.showConfirmDialog(
+      title: 'Create Lesson',
+      message: 'Are you sure you want to create this lesson?',
+      confirmText: 'Create',
+      cancelText: 'Cancel',
+      icon: Icons.add_circle,
+    );
+
+    if (!shouldCreate) return false;
+
     try {
+      DialogUtils.showLoadingDialog(message: 'Creating lesson...');
+
+      await Future.delayed(const Duration(seconds: 2));
+
       isCreating.value = true;
       clearMessages();
 
@@ -187,13 +203,6 @@ class CourseLessonController extends GetxController {
 
       List<String> keywords = parseKeywords(keywordsController.text);
 
-      log('lesson title: ${titleController.text.trim()}');
-      log('Course id: $targetCourseId.toString()');
-      log('lesson description: ${descriptionController.text.trim()}');
-      log('lesson duration: ${readingDuration.toString()}');
-      log('lesson keywords: ${keywords.toString()}');
-      log('lesson pdf: ${pdfPath.toString()}');
-
       final response = await CourseLessonService.createCourseLesson(
         targetCourseId,
         titleController.text.trim(),
@@ -203,6 +212,8 @@ class CourseLessonController extends GetxController {
         pdfPath: pdfPath,
       );
 
+      DialogUtils.hideDialog(); // Hide loading dialog
+
       if (response.success && response.data != null) {
         // Add the new lesson to the list
         lessons.add(response.data!);
@@ -211,14 +222,7 @@ class CourseLessonController extends GetxController {
         log('Lesson created successfully: ${response.data!.title}');
 
         // Show success snackbar
-        Get.snackbar(
-          'Success',
-          response.message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-        );
+        SnackBarMessage.showSuccessMessage(response.message);
 
         return true;
       } else {
@@ -230,7 +234,7 @@ class CourseLessonController extends GetxController {
           'Error',
           response.message,
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
+          backgroundColor: const Color.fromARGB(255, 194, 194, 194),
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );

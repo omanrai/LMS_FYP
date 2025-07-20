@@ -3,7 +3,7 @@ import 'package:flutter_fyp/feature/screen/auth/login_screen.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 
-import '../../../core/utility/model/image_picker_utils.dart';
+import '../../../core/utility/image_picker_utils.dart';
 import '../../controller/auth/register_controller.dart';
 
 class RegistrationScreen extends StatelessWidget {

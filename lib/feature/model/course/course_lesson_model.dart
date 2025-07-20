@@ -1,5 +1,3 @@
-// course_lesson_model.dart
-
 class CourseLessonModel {
   final String id;
   final String title;
@@ -24,6 +22,21 @@ class CourseLessonModel {
   });
 
   factory CourseLessonModel.fromJson(Map<String, dynamic> json) {
+    // Handle keywords parsing with null safety
+    List<String> parsedKeywords = [];
+    if (json['keywords'] != null && json['keywords'] is List) {
+      parsedKeywords = (json['keywords'] as List)
+          .where((keyword) => keyword != null)
+          .map((keyword) => keyword.toString())
+          .toList();
+    }
+
+    // Handle tests parsing with null safety
+    List<dynamic> parsedTests = [];
+    if (json['tests'] != null && json['tests'] is List) {
+      parsedTests = List<dynamic>.from(json['tests']);
+    }
+
     return CourseLessonModel(
       id: json['_id'] ?? '',
       title: json['title'] ?? '',
@@ -31,8 +44,8 @@ class CourseLessonModel {
       pdfUrl: json['pdfUrl'],
       readingDuration: json['readingDuration'] ?? 0,
       courseId: json['course'] ?? '',
-      keywords: List<String>.from(json['keywords'] ?? []),
-      tests: List<dynamic>.from(json['tests'] ?? []),
+      keywords: parsedKeywords,
+      tests: parsedTests,
       version: json['__v'] ?? 0,
     );
   }
@@ -73,6 +86,23 @@ class CourseLessonModel {
       tests: tests ?? this.tests,
       version: version ?? this.version,
     );
+  }
+
+  // Helper methods
+  bool get hasPdf => pdfUrl != null && pdfUrl!.isNotEmpty;
+  bool get hasKeywords => keywords.isNotEmpty;
+  bool get hasTests => tests.isNotEmpty;
+  
+  // Format reading duration
+  String get formattedReadingDuration {
+    if (readingDuration <= 0) return "No duration specified";
+    if (readingDuration < 60) return "${readingDuration}m";
+    
+    int hours = readingDuration ~/ 60;
+    int minutes = readingDuration % 60;
+    
+    if (minutes == 0) return "${hours}h";
+    return "${hours}h ${minutes}m";
   }
 
   @override

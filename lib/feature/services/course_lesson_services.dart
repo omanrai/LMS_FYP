@@ -284,13 +284,26 @@ class CourseLessonService {
         final file = File(pdfPath);
         formData.files.add(
           MapEntry(
-            'pdfFile',
+            'pdfUrl',
             await MultipartFile.fromFile(
               file.path,
               filename: file.path.split('/').last,
             ),
           ),
         );
+
+        // Log all fields
+        log('--- FormData Fields ---');
+        for (final field in formData.fields) {
+          log('${field.key}: ${field.value}');
+        }
+
+        // Log all files
+        log('--- FormData Files ---');
+        for (final fileEntry in formData.files) {
+          final file = fileEntry.value;
+          log('${fileEntry.key}: ${file.filename} (${file.length} bytes)');
+        }
 
         // Send request with FormData (multipart)
         response = await _dio.post(
@@ -428,7 +441,7 @@ class CourseLessonService {
         final file = File(pdfPath);
         formData.files.add(
           MapEntry(
-            'pdfFile',
+            'pdfUrl',
             await MultipartFile.fromFile(
               file.path,
               filename: file.path.split('/').last,

@@ -7,20 +7,25 @@ import '../../../core/utility/image_picker_utils.dart';
 import '../../controller/course/course_controller.dart';
 import '../../model/course/course_model.dart';
 
-class EditCourseScreen extends StatefulWidget {
-  final CourseModel course;
+class AddEditCourseScreen extends StatefulWidget {
+  final CourseModel? course; // Made nullable to support add mode
+  final bool isEditMode; // Flag to determine if we're editing or adding
 
-  const EditCourseScreen({Key? key, required this.course}) : super(key: key);
+  const AddEditCourseScreen({
+    Key? key, 
+    this.course, // Optional now
+    this.isEditMode = true, // Default to edit mode for backward compatibility
+  }) : super(key: key);
 
   @override
-  State<EditCourseScreen> createState() => _EditCourseScreenState();
+  State<AddEditCourseScreen> createState() => _AddEditCourseScreenState();
 }
 
-class _EditCourseScreenState extends State<EditCourseScreen> {
+class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   late final CourseController courseController;
   late final TextEditingController titleController;
   late final TextEditingController descriptionController;
-  final GlobalKey<FormState> editFormKey = GlobalKey<FormState>();
+  late final GlobalKey<FormState> formKey;
   final Rx<File?> selectedImage = Rx<File?>(null);
   final RxBool isImageUploading = false.obs;
 
@@ -35,17 +40,34 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
       courseController = Get.put(CourseController());
     }
 
-    // Initialize controllers with existing course data
-    titleController = TextEditingController(text: widget.course.title);
-    descriptionController = TextEditingController(
-      text: widget.course.description,
-    );
+    // Initialize form key based on mode
+    if (widget.isEditMode) {
+      formKey = GlobalKey<FormState>();
+    } else {
+      // Use the controller's form key for add mode consistency
+      formKey = courseController.createCourseFormKey;
+    }
+
+    // Initialize controllers with existing course data or empty for add mode
+    if (widget.isEditMode && widget.course != null) {
+      titleController = TextEditingController(text: widget.course!.title);
+      descriptionController = TextEditingController(
+        text: widget.course!.description,
+      );
+    } else {
+      // For add mode, use controller's text controllers if available
+      titleController = courseController.titleController;
+      descriptionController = courseController.descriptionController;
+    }
   }
 
   @override
   void dispose() {
-    titleController.dispose();
-    descriptionController.dispose();
+    // Only dispose controllers if in edit mode (add mode uses controller's controllers)
+    if (widget.isEditMode) {
+      titleController.dispose();
+      descriptionController.dispose();
+    }
     super.dispose();
   }
 
@@ -67,8 +89,20 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
     final File? selectedFile = await ImagePickerUtils.pickImageFromGallery(
       maxWidth: 1024,
       maxHeight: 1024,
-      onStart: () => isImageUploading.value = true,
-      onEnd: () => isImageUploading.value = false,
+      onStart: () {
+        if (widget.isEditMode) {
+          isImageUploading.value = true;
+        } else {
+          courseController.setImageUploading(true);
+        }
+      },
+      onEnd: () {
+        if (widget.isEditMode) {
+          isImageUploading.value = false;
+        } else {
+          courseController.setImageUploading(false);
+        }
+      },
       onError: (error) {
         log('Image picker error: $error');
         Get.snackbar(
@@ -82,38 +116,77 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
     );
 
     if (selectedFile != null) {
-      selectedImage.value = selectedFile;
+      if (widget.isEditMode) {
+        selectedImage.value = selectedFile;
+      } else {
+        courseController.setSelectedImage(selectedFile);
+      }
     }
   }
 
-  Future<void> _handleUpdateCourse() async {
+  Future<void> _handleSubmit() async {
     // Dismiss keyboard first
     FocusScope.of(context).unfocus();
 
-    if (!editFormKey.currentState!.validate()) {
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
     // Add a small delay to ensure keyboard is dismissed
     await Future.delayed(const Duration(milliseconds: 100));
 
-    final isUpdated = await courseController.updateCourse(
-      widget.course.id,
-      titleController.text.trim(),
-      descriptionController.text.trim(),
-      imagePath: selectedImage.value?.path,
-    );
+    bool isSuccess = false;
 
-    if (isUpdated) {
-      Navigator.pop(context);
+    if (widget.isEditMode) {
+      // Update course
+      isSuccess = await courseController.updateCourse(
+        widget.course!.id,
+        titleController.text.trim(),
+        descriptionController.text.trim(),
+        imagePath: selectedImage.value?.path,
+      );
+    } else {
+      // Create course
+      isSuccess = await courseController.createCourse();
+      log('Course creation result: $isSuccess');
     }
+
+    if (isSuccess) {
+      Navigator.pop(context);
+    } else if (!widget.isEditMode) {
+      // Show error message for add mode
+      Get.snackbar(
+        'Error',
+        'Failed to create course',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+      );
+    }
+  }
+
+  // Get the appropriate reactive boolean for image uploading
+  RxBool get imageUploadingState {
+    return widget.isEditMode ? isImageUploading : courseController.isImageUploading;
+  }
+
+  // Get the appropriate reactive boolean for operation in progress
+  bool get isOperationInProgress {
+    return widget.isEditMode ? courseController.isUpdating : courseController.isCreating;
+  }
+
+  // Get the appropriate selected image
+  Rx<File?> get currentSelectedImage {
+    return widget.isEditMode ? selectedImage : courseController.selectedImage;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Course'),
+        title: Text(widget.isEditMode ? 'Edit Course' : 'Add New Course'),
         backgroundColor: const Color(0xFF6366F1),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -133,7 +206,7 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
                   child: Form(
-                    key: editFormKey,
+                    key: formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -150,8 +223,10 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                         Obx(
                           () => TextFormField(
                             controller: titleController,
-                            validator: validateTitle,
-                            enabled: !courseController.isUpdating,
+                            validator: widget.isEditMode 
+                                ? validateTitle 
+                                : courseController.validateTitle,
+                            enabled: !isOperationInProgress,
                             decoration: InputDecoration(
                               hintText: 'Enter course title',
                               border: OutlineInputBorder(
@@ -164,8 +239,8 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                                   width: 2,
                                 ),
                               ),
-                              filled: courseController.isUpdating,
-                              fillColor: courseController.isUpdating
+                              filled: isOperationInProgress,
+                              fillColor: isOperationInProgress
                                   ? Colors.grey.shade100
                                   : null,
                             ),
@@ -187,8 +262,10 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                           () => TextFormField(
                             controller: descriptionController,
                             maxLines: 4,
-                            validator: validateDescription,
-                            enabled: !courseController.isUpdating,
+                            validator: widget.isEditMode 
+                                ? validateDescription 
+                                : courseController.validateDescription,
+                            enabled: !isOperationInProgress,
                             decoration: InputDecoration(
                               hintText: 'Enter course description',
                               border: OutlineInputBorder(
@@ -201,8 +278,8 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                                   width: 2,
                                 ),
                               ),
-                              filled: courseController.isUpdating,
-                              fillColor: courseController.isUpdating
+                              filled: isOperationInProgress,
+                              fillColor: isOperationInProgress
                                   ? Colors.grey.shade100
                                   : null,
                             ),
@@ -230,7 +307,7 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                             // Image Preview Section
                             Obx(() {
                               // Show selected image if user picked a new one
-                              if (selectedImage.value != null) {
+                              if (currentSelectedImage.value != null) {
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 16),
                                   child: Column(
@@ -239,26 +316,22 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                                         width: 200,
                                         height: 120,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
                                           border: Border.all(
                                             color: Colors.grey.shade300,
                                           ),
                                         ),
                                         child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
                                           child: Image.file(
-                                            selectedImage.value!,
+                                            currentSelectedImage.value!,
                                             fit: BoxFit.cover,
                                           ),
                                         ),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'New Selected Image',
+                                        widget.isEditMode ? 'New Selected Image' : 'Selected Image',
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade600,
@@ -268,9 +341,11 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                                   ),
                                 );
                               }
-                              // Show existing image if no new image is selected
-                              else if (widget.course.coverImage != null &&
-                                  widget.course.coverImage!.isNotEmpty) {
+                              // Show existing image if no new image is selected (edit mode only)
+                              else if (widget.isEditMode && 
+                                       widget.course != null && 
+                                       widget.course!.coverImage != null &&
+                                       widget.course!.coverImage!.isNotEmpty) {
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 16),
                                   child: Column(
@@ -279,31 +354,26 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                                         width: 200,
                                         height: 120,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
                                           border: Border.all(
                                             color: Colors.grey.shade300,
                                           ),
                                         ),
                                         child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
                                           child: Image.network(
-                                            widget.course.coverImage!,
+                                            widget.course!.coverImage!,
                                             fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                                  return Container(
-                                                    color: Colors.grey.shade200,
-                                                    child: const Icon(
-                                                      Icons.image_not_supported,
-                                                      size: 40,
-                                                      color: Colors.grey,
-                                                    ),
-                                                  );
-                                                },
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return Container(
+                                                color: Colors.grey.shade200,
+                                                child: const Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 40,
+                                                  color: Colors.grey,
+                                                ),
+                                              );
+                                            },
                                           ),
                                         ),
                                       ),
@@ -360,40 +430,28 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                               width: 250,
                               child: Obx(
                                 () => ElevatedButton.icon(
-                                  onPressed:
-                                      isImageUploading.value ||
-                                          courseController.isUpdating
+                                  onPressed: imageUploadingState.value || isOperationInProgress
                                       ? null
                                       : _pickImage,
-                                  icon: isImageUploading.value
+                                  icon: imageUploadingState.value
                                       ? const SizedBox(
                                           width: 20,
                                           height: 20,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
                                           ),
                                         )
                                       : const Icon(Icons.cloud_upload),
                                   label: Text(
-                                    isImageUploading.value
+                                    imageUploadingState.value
                                         ? 'Uploading...'
-                                        : (widget.course.coverImage != null &&
-                                                  widget
-                                                      .course
-                                                      .coverImage!
-                                                      .isNotEmpty) ||
-                                              selectedImage.value != null
-                                        ? 'Change Image'
-                                        : 'Upload Image',
+                                        : _getImageButtonText(),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
                                     backgroundColor: primaryColor,
                                     foregroundColor: Colors.white,
                                   ),
@@ -428,10 +486,9 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                   width: double.infinity,
                   child: Obx(
                     () => ElevatedButton(
-                      onPressed:
-                          courseController.isUpdating || isImageUploading.value
+                      onPressed: isOperationInProgress || imageUploadingState.value
                           ? null
-                          : _handleUpdateCourse,
+                          : _handleSubmit,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
@@ -442,11 +499,11 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: courseController.isUpdating
-                          ? const Row(
+                      child: isOperationInProgress
+                          ? Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                SizedBox(
+                                const SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
@@ -456,19 +513,19 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
                                     ),
                                   ),
                                 ),
-                                SizedBox(width: 12),
+                                const SizedBox(width: 12),
                                 Text(
-                                  'Updating Course...',
-                                  style: TextStyle(
+                                  widget.isEditMode ? 'Updating Course...' : 'Creating Course...',
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
                             )
-                          : const Text(
-                              'Update Course',
-                              style: TextStyle(
+                          : Text(
+                              widget.isEditMode ? 'Update Course' : 'Create Course',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -482,5 +539,23 @@ class _EditCourseScreenState extends State<EditCourseScreen> {
         ),
       ),
     );
+  }
+
+  String _getImageButtonText() {
+    if (widget.isEditMode) {
+      // Edit mode logic
+      bool hasExistingImage = widget.course?.coverImage != null && 
+                              widget.course!.coverImage!.isNotEmpty;
+      bool hasNewImage = currentSelectedImage.value != null;
+      
+      if (hasExistingImage || hasNewImage) {
+        return 'Change Image';
+      } else {
+        return 'Upload Image';
+      }
+    } else {
+      // Add mode logic
+      return currentSelectedImage.value != null ? 'Change Image' : 'Upload Image';
+    }
   }
 }

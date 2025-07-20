@@ -5,17 +5,19 @@ import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../controller/course/course_lesson_controller.dart';
 import '../../../model/course/course_model.dart';
+import '../../../model/course/course_lesson_model.dart';
 
-class AddLessonScreen extends StatefulWidget {
+class EditLessonScreen extends StatefulWidget {
   final CourseModel course;
+  final CourseLessonModel lesson;
 
-  const AddLessonScreen({Key? key, required this.course}) : super(key: key);
+  const EditLessonScreen({Key? key, required this.course, required this.lesson}) : super(key: key);
 
   @override
-  State<AddLessonScreen> createState() => _AddLessonScreenState();
+  State<EditLessonScreen> createState() => _EditLessonScreenState();
 }
 
-class _AddLessonScreenState extends State<AddLessonScreen> {
+class _EditLessonScreenState extends State<EditLessonScreen> {
   final CourseLessonController _controller = Get.find<CourseLessonController>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -28,15 +30,32 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
   bool _isUploading = false;
 
   // Keywords management
-  final List<String> _keywords = [];
+  late List<String> _keywords;
 
   @override
   void initState() {
     super.initState();
     // Set the current course ID in the controller
     _controller.setCurrentCourseId(widget.course.id);
-    // Clear any existing data
-    _controller.clearControllers();
+    // Initialize with existing lesson data
+    _initializeWithLessonData();
+  }
+
+  void _initializeWithLessonData() {
+    // Populate controllers with existing lesson data
+    _controller.titleController.text = widget.lesson.title;
+    _controller.descriptionController.text = widget.lesson.description;
+    _controller.readingDurationController.text = widget.lesson.readingDuration.toString();
+    
+    // Initialize keywords
+    _keywords = List<String>.from(widget.lesson.keywords);
+    _controller.keywordsController.text = _keywords.join(', ');
+    
+    // Set existing PDF info if available
+    if (widget.lesson.hasPdf) {
+      _selectedPdfName = widget.lesson.pdfUrl?.split('/').last ?? 'Existing PDF';
+    }
+    
     _controller.clearMessages();
   }
 
@@ -61,7 +80,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
       foregroundColor: Colors.white,
       elevation: 0,
       title: const Text(
-        'Add New Lesson',
+        'Edit Lesson',
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
       leading: IconButton(
@@ -114,7 +133,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
               color: const Color(0xFF6366F1).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.book, color: Color(0xFF6366F1), size: 24),
+            child: const Icon(Icons.edit, color: Color(0xFF6366F1), size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -131,7 +150,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Adding lesson to this course',
+                  'Editing: ${widget.lesson.title}',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xFF6B7280),
@@ -505,7 +524,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Upload a PDF document for this lesson',
+          'Upload a new PDF document to replace the existing one (optional)',
           style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
         ),
         const SizedBox(height: 12),
@@ -515,6 +534,8 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
   }
 
   Widget _buildPdfUploadWidget() {
+    bool hasExistingPdf = widget.lesson.hasPdf && _selectedPdfFile == null;
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -522,7 +543,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
         color: const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _selectedPdfFile != null
+          color: (_selectedPdfFile != null || hasExistingPdf)
               ? const Color(0xFF10B981)
               : const Color(0xFFE5E7EB),
           width: 2,
@@ -531,7 +552,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
       ),
       child: Column(
         children: [
-          if (_selectedPdfFile == null) ...[
+          if (_selectedPdfFile == null && !hasExistingPdf) ...[
             Icon(
               Icons.cloud_upload_outlined,
               size: 48,
@@ -551,7 +572,29 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
               'Maximum file size: 10MB',
               style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
             ),
-          ] else ...[
+          ] else if (hasExistingPdf) ...[
+            Icon(
+              Icons.picture_as_pdf,
+              size: 48,
+              color: const Color(0xFF10B981),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _selectedPdfName ?? 'Current PDF',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111827),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Current PDF file',
+              style: TextStyle(fontSize: 12, color: Color(0xFF10B981)),
+              textAlign: TextAlign.center,
+            ),
+          ] else if (_selectedPdfFile != null) ...[
             Icon(
               Icons.picture_as_pdf,
               size: 48,
@@ -565,6 +608,12 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF111827),
               ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'New PDF selected',
+              style: TextStyle(fontSize: 12, color: Color(0xFF10B981)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -587,7 +636,13 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.attach_file),
-            label: Text(_isUploading ? 'Selecting...' : 'Choose File'),
+            label: Text(_isUploading 
+                ? 'Selecting...' 
+                : _selectedPdfFile != null 
+                    ? 'Change File' 
+                    : hasExistingPdf 
+                        ? 'Replace File' 
+                        : 'Choose File'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6366F1),
               foregroundColor: Colors.white,
@@ -637,9 +692,9 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : const Icon(Icons.add),
+            : const Icon(Icons.save),
         label: Text(
-          _controller.isCreating.value ? 'Creating Lesson...' : 'Create Lesson',
+          _controller.isCreating.value ? 'Updating Lesson...' : 'Update Lesson',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         style: ElevatedButton.styleFrom(
@@ -748,7 +803,8 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
     _controller.keywordsController.text = _keywords.join(', ');
 
     try {
-      bool success = await _controller.createCourseLesson(
+      bool success = await _controller.updateCourseLesson(
+        widget.lesson.id,
         courseId: widget.course.id,
         pdfPath: _selectedPdfFile?.path,
       );
@@ -760,7 +816,7 @@ class _AddLessonScreenState extends State<AddLessonScreen> {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to create lesson: ${e.toString()}',
+        'Failed to update lesson: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,

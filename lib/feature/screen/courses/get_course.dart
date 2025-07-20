@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fyp/feature/screen/courses/edit_course.dart';
 import 'package:get/get.dart';
 
-import '../../../core/utility/model/dialog_utils.dart';
+import '../../../core/utility/dialog_utils.dart';
 import '../../controller/course/course_controller.dart';
 import '../../model/course/course_model.dart';
+import 'add_edit_course.dart';
 import 'create_course_bottomsheet.dart';
 import 'view_course.dart';
 
@@ -35,9 +36,9 @@ class _CourseScreenState extends State<CourseScreen> {
     courseController.fetchCourses();
   }
 
-  void _addCourse() {
-    AddCourseBottomSheet.show(context, courseController);
-  }
+  // void _addCourse() {
+  //   AddCourseBottomSheet.show(context, courseController);
+  // }
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,7 +180,7 @@ class _CourseScreenState extends State<CourseScreen> {
                 backgroundColor: const Color(0xFF6366F1),
                 foregroundColor: Colors.white,
                 elevation: 3,
-                shadowColor: const Color(0xFF6366F1).withOpacity(0.4),
+                shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -241,14 +242,17 @@ class _CourseScreenState extends State<CourseScreen> {
             ),
           ),
           ElevatedButton.icon(
-            onPressed: _addCourse,
+            // onPressed: _addCourse,
+            onPressed: () {
+              Get.to(() => AddEditCourseScreen(isEditMode: false));
+            },
             icon: const Icon(Icons.add, size: 20),
             label: const Text('Add Course'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6366F1),
               foregroundColor: Colors.white,
               elevation: 3,
-              shadowColor: const Color(0xFF6366F1).withOpacity(0.4),
+              shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -310,7 +314,7 @@ class _CourseScreenState extends State<CourseScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -322,7 +326,7 @@ class _CourseScreenState extends State<CourseScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -407,14 +411,17 @@ class _CourseScreenState extends State<CourseScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: _addCourse,
+              // onPressed: _addCourse,
+              onPressed: () {
+                Get.to(() => AddEditCourseScreen(isEditMode: false));
+              },
               icon: const Icon(Icons.add, size: 20),
               label: const Text('Create Your First Course'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6366F1),
                 foregroundColor: Colors.white,
                 elevation: 3,
-                shadowColor: const Color(0xFF6366F1).withOpacity(0.4),
+                shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -462,7 +469,7 @@ class _CourseScreenState extends State<CourseScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -524,7 +531,13 @@ class _CourseScreenState extends State<CourseScreen> {
                             size: 18,
                           ),
                           onPressed: () {
-                            Get.to(() => EditCourseScreen(course: course));
+                            // Get.to(() => EditCourseScreen(course: course));
+                            Get.to(
+                              () => AddEditCourseScreen(
+                                course: course,
+                                isEditMode: true,
+                              ),
+                            );
                           },
                         ),
                       ],
@@ -669,7 +682,10 @@ class _CourseScreenState extends State<CourseScreen> {
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
-            onPressed: _addCourse,
+            // onPressed: _addCourse,
+            onPressed: () {
+              Get.to(() => AddEditCourseScreen(isEditMode: false));
+            },
             icon: const Icon(Icons.add, size: 20),
             label: const Text('Add Another Course'),
             style: OutlinedButton.styleFrom(

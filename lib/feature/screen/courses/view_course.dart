@@ -3,8 +3,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/course/course_lesson_controller.dart';
+import '../../model/course/course_lesson_model.dart';
 import '../../model/course/course_model.dart';
+import 'lesson/add_edit_lesson.dart';
 import 'lesson/add_lesson.dart';
+import 'lesson/edit_lesson.dart';
 
 class ViewCourseScreen extends StatefulWidget {
   final CourseModel course;
@@ -93,7 +96,10 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.7),
+                  ],
                 ),
               ),
             ),
@@ -111,7 +117,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -148,7 +154,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
       leading: Container(
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(12),
         ),
         child: IconButton(
@@ -160,7 +166,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
           ),
           child: IconButton(
@@ -247,7 +253,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 24),
@@ -284,7 +290,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
               backgroundColor: const Color(0xFF6366F1),
               foregroundColor: Colors.white,
               elevation: 3,
-              shadowColor: const Color(0xFF6366F1).withOpacity(0.4),
+              shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -359,7 +365,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -434,7 +440,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -468,7 +474,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                     margin: const EdgeInsets.only(top: 2),
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.1),
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Icon(
@@ -521,7 +527,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -571,7 +577,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -586,64 +592,347 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     );
   }
 
-  Widget _buildLessonItem(int index, dynamic lesson) {
+  Widget _buildLessonItem(int index, CourseLessonModel lesson) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        border: index < widget.course.lessons.length - 1
-            ? const Border(bottom: BorderSide(color: Color(0xFFF3F4F6)))
-            : null,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Center(
-              child: Text(
-                '${index + 1}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF6366F1),
-                ),
-              ),
-            ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFF3F4F6), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-          const SizedBox(width: 16),
-          Expanded(
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            // Navigate to lesson detail or start lesson
+            print('Tapped lesson: ${lesson.title}');
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Lesson ${index + 1}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF111827),
-                  ),
+                // Header Row
+                Row(
+                  children: [
+                    // Lesson Number Badge
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        ),
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF6366F1,
+                            ).withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Lesson Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            lesson.title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827),
+                              height: 1.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              // Duration
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF10B981,
+                                  ).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      size: 12,
+                                      color: Color(0xFF10B981),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      lesson.formattedReadingDuration,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+
+                              // PDF Indicator
+                              if (lesson.hasPdf)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFFF59E0B,
+                                    ).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.picture_as_pdf,
+                                        size: 12,
+                                        color: Color(0xFFF59E0B),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Text(
+                                        'PDF',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFFF59E0B),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                              // Tests Indicator
+                              if (lesson.hasTests)
+                                Container(
+                                  margin: const EdgeInsets.only(left: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF8B5CF6,
+                                    ).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.quiz,
+                                        size: 12,
+                                        color: Color(0xFF8B5CF6),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${lesson.tests.length}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF8B5CF6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Action Button
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              // Play lesson or navigate
+                              print('Play lesson: ${lesson.title}');
+                            },
+                            icon: const Icon(
+                              Icons.play_arrow,
+                              color: Color(0xFF6366F1),
+                              size: 12,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              print('delete lesson: ${lesson.title}');
+                            },
+                            icon: const Icon(
+                              Icons.delete_forever,
+                              color: Color(0xFF6366F1),
+                              size: 12,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              // Get.to(
+                              //   () => EditLessonScreen(
+                              //     course: widget.course,
+                              //     lesson: lesson,
+                              //   ),
+                              Get.to(
+                                () => AddEditLessonScreen(
+                                  course: widget.course,
+                                  lesson: lesson,
+                                ),
+                                binding: BindingsBuilder(() {
+                                  Get.lazyPut(() => CourseLessonController());
+                                }),
+                              );
+                              print('edit lesson: ${lesson.title}');
+                            },
+                            icon: const Icon(
+                              Icons.edit,
+                              color: Color(0xFF6366F1),
+                              size: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Duration: 15 min',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6B7280),
+
+                // Description
+                if (lesson.description.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    lesson.description,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF6B7280),
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+
+                // Keywords
+                if (lesson.hasKeywords) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: lesson.keywords.take(3).map((keyword) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFF6366F1,
+                          ).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: const Color(
+                              0xFF6366F1,
+                            ).withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          keyword,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF6366F1),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  if (lesson.keywords.length > 3)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        '+${lesson.keywords.length - 3} more topics',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: const Color(0xFF6B7280).withValues(alpha: 0.8),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                ],
+
+                // Progress Bar (Optional - you can add progress tracking)
+                const SizedBox(height: 12),
+                Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor:
+                        0.0, // Set to 0.0 for new lessons, update based on progress
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          Icon(
-            Icons.play_circle_outline,
-            color: const Color(0xFF6366F1),
-            size: 24,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -670,7 +959,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -728,9 +1017,10 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     return FloatingActionButton.extended(
       onPressed: () {
         // Add lesson functionality
-        // Get.to(() => AddLessonScreen(course: course));
+        // Get.to(
+        //   () => AddLessonScreen(course: course),
         Get.to(
-          () => AddLessonScreen(course: course),
+          () => AddEditLessonScreen(course: course),
           binding: BindingsBuilder(() {
             Get.lazyPut(() => CourseLessonController());
           }),
