@@ -8,8 +8,6 @@ import '../../controller/course/course_lesson_controller.dart';
 import '../../model/course/course_lesson_model.dart';
 import '../../model/course/course_model.dart';
 import 'lesson/add_edit_lesson.dart';
-import 'test_widget/add_lesson.dart';
-import 'test_widget/edit_lesson.dart';
 
 class ViewCourseScreen extends StatefulWidget {
   final CourseModel course;

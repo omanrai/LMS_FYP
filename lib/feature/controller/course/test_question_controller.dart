@@ -7,30 +7,33 @@ import '../../model/api_response_model.dart';
 import '../../model/course/test_question_model.dart';
 import '../../services/test_question_services.dart';
 
-
 class TestQuestionController extends GetxController {
   // Observable lists and variables
   final RxList<TestQuestionModel> testQuestions = <TestQuestionModel>[].obs;
-  final RxList<TestQuestionModel> filteredTestQuestions = <TestQuestionModel>[].obs;
-  final Rx<TestQuestionModel?> selectedTestQuestion = Rx<TestQuestionModel?>(null);
-  
+  final RxList<TestQuestionModel> filteredTestQuestions =
+      <TestQuestionModel>[].obs;
+  final Rx<TestQuestionModel?> selectedTestQuestion = Rx<TestQuestionModel?>(
+    null,
+  );
+
   // Loading states
   final RxBool isLoading = false.obs;
   final RxBool isCreating = false.obs;
   final RxBool isUpdating = false.obs;
   final RxBool isDeleting = false.obs;
   final RxBool isFetchingById = false.obs;
-  
+
   // Search and filter
   final RxString searchQuery = ''.obs;
   final RxString selectedLessonId = ''.obs;
-  
+
   // Form controllers for create/update
   final TextEditingController questionController = TextEditingController();
   final TextEditingController lessonIdController = TextEditingController();
-  final RxList<TextEditingController> optionControllers = <TextEditingController>[].obs;
+  final RxList<TextEditingController> optionControllers =
+      <TextEditingController>[].obs;
   final RxInt selectedCorrectAnswer = 0.obs;
-  
+
   // Error handling
   final RxString errorMessage = ''.obs;
   final RxBool hasError = false.obs;
@@ -42,10 +45,18 @@ class TestQuestionController extends GetxController {
     _initializeOptionControllers();
     // Load test questions when controller is initialized
     fetchTestQuestions();
-    
+
     // Listen to search query changes
-    debounce(searchQuery, (_) => _filterTestQuestions(), time: const Duration(milliseconds: 500));
-    debounce(selectedLessonId, (_) => _filterTestQuestions(), time: const Duration(milliseconds: 300));
+    debounce(
+      searchQuery,
+      (_) => _filterTestQuestions(),
+      time: const Duration(milliseconds: 500),
+    );
+    debounce(
+      selectedLessonId,
+      (_) => _filterTestQuestions(),
+      time: const Duration(milliseconds: 300),
+    );
   }
 
   @override
@@ -75,17 +86,19 @@ class TestQuestionController extends GetxController {
 
   // Add a new option field
   void addOption() {
-    if (optionControllers.length < 6) { // Limit to 6 options
+    if (optionControllers.length < 6) {
+      // Limit to 6 options
       optionControllers.add(TextEditingController());
     }
   }
 
   // Remove an option field
   void removeOption(int index) {
-    if (optionControllers.length > 2 && index < optionControllers.length) { // Minimum 2 options
+    if (optionControllers.length > 2 && index < optionControllers.length) {
+      // Minimum 2 options
       optionControllers[index].dispose();
       optionControllers.removeAt(index);
-      
+
       // Adjust correct answer if needed
       if (selectedCorrectAnswer.value >= optionControllers.length) {
         selectedCorrectAnswer.value = optionControllers.length - 1;
@@ -100,7 +113,9 @@ class TestQuestionController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      final ApiResponse<List<TestQuestionModel>> response = 
+      Future.delayed(Duration(seconds: 2));
+
+      final ApiResponse<List<TestQuestionModel>> response =
           await TestQuestionService.getTestQuestionList();
 
       if (response.success && response.data != null) {
@@ -130,12 +145,14 @@ class TestQuestionController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      final ApiResponse<TestQuestionModel> response = 
+      final ApiResponse<TestQuestionModel> response =
           await TestQuestionService.getTestQuestionById(questionId);
 
       if (response.success && response.data != null) {
         selectedTestQuestion.value = response.data!;
-        log('Fetched test question by ID successfully: ${response.data!.question}');
+        log(
+          'Fetched test question by ID successfully: ${response.data!.question}',
+        );
       } else {
         hasError.value = true;
         errorMessage.value = response.message;
@@ -170,22 +187,22 @@ class TestQuestionController extends GetxController {
           .where((option) => option.isNotEmpty)
           .toList();
 
-      final ApiResponse<TestQuestionModel> response = 
+      final ApiResponse<TestQuestionModel> response =
           await TestQuestionService.createTestQuestion(
-        question: questionController.text.trim(),
-        options: options,
-        correctAnswer: selectedCorrectAnswer.value,
-        lessonId: lessonIdController.text.trim(),
-      );
+            question: questionController.text.trim(),
+            options: options,
+            correctAnswer: selectedCorrectAnswer.value,
+            lessonId: lessonIdController.text.trim(),
+          );
 
       if (response.success && response.data != null) {
         // Add the new test question to the list
         testQuestions.add(response.data!);
         _filterTestQuestions();
-        
+
         // Clear form
-        _clearForm();
-        
+        clearForm();
+
         log('Test question created successfully: ${response.data!.question}');
         _showSuccessSnackbar('Success', 'Test question created successfully');
         return true;
@@ -225,14 +242,14 @@ class TestQuestionController extends GetxController {
           .where((option) => option.isNotEmpty)
           .toList();
 
-      final ApiResponse<TestQuestionModel> response = 
+      final ApiResponse<TestQuestionModel> response =
           await TestQuestionService.updateTestQuestion(
-        questionId: questionId,
-        question: questionController.text.trim(),
-        options: options,
-        correctAnswer: selectedCorrectAnswer.value,
-        lessonId: lessonIdController.text.trim(),
-      );
+            questionId: questionId,
+            question: questionController.text.trim(),
+            options: options,
+            correctAnswer: selectedCorrectAnswer.value,
+            lessonId: lessonIdController.text.trim(),
+          );
 
       if (response.success && response.data != null) {
         // Update the test question in the list
@@ -241,10 +258,10 @@ class TestQuestionController extends GetxController {
           testQuestions[index] = response.data!;
           _filterTestQuestions();
         }
-        
+
         // Clear form
-        _clearForm();
-        
+        clearForm();
+
         log('Test question updated successfully: ${response.data!.question}');
         _showSuccessSnackbar('Success', 'Test question updated successfully');
         return true;
@@ -273,14 +290,14 @@ class TestQuestionController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      final ApiResponse<bool> response = 
+      final ApiResponse<bool> response =
           await TestQuestionService.deleteTestQuestion(questionId);
 
       if (response.success) {
         // Remove the test question from the list
         testQuestions.removeWhere((question) => question.id == questionId);
         _filterTestQuestions();
-        
+
         log('Test question deleted successfully: $questionId');
         _showSuccessSnackbar('Success', 'Test question deleted successfully');
         return true;
@@ -323,15 +340,17 @@ class TestQuestionController extends GetxController {
     if (searchQuery.value.isNotEmpty) {
       filtered = filtered.where((question) {
         return question.question.toLowerCase().contains(searchQuery.value) ||
-               question.options.any((option) => 
-                   option.toLowerCase().contains(searchQuery.value));
+            question.options.any(
+              (option) => option.toLowerCase().contains(searchQuery.value),
+            );
       }).toList();
     }
 
     // Filter by lesson ID
     if (selectedLessonId.value.isNotEmpty) {
-      filtered = filtered.where((question) => 
-          question.lessonId == selectedLessonId.value).toList();
+      filtered = filtered
+          .where((question) => question.lessonId == selectedLessonId.value)
+          .toList();
     }
 
     filteredTestQuestions.value = filtered;
@@ -342,22 +361,22 @@ class TestQuestionController extends GetxController {
     questionController.text = question.question;
     lessonIdController.text = question.lessonId;
     selectedCorrectAnswer.value = question.correctAnswer;
-    
+
     // Clear existing option controllers
     _disposeOptionControllers();
     optionControllers.clear();
-    
+
     // Create controllers for each option
     for (int i = 0; i < question.options.length; i++) {
       optionControllers.add(TextEditingController(text: question.options[i]));
     }
   }
 
-  void _clearForm() {
+  void clearForm() {
     questionController.clear();
     lessonIdController.clear();
     selectedCorrectAnswer.value = 0;
-    
+
     // Clear option controllers
     for (var controller in optionControllers) {
       controller.clear();
@@ -389,8 +408,12 @@ class TestQuestionController extends GetxController {
     }
 
     // Validate correct answer
-    if (selectedCorrectAnswer.value < 0 || selectedCorrectAnswer.value >= options.length) {
-      _showErrorSnackbar('Validation Error', 'Please select a valid correct answer');
+    if (selectedCorrectAnswer.value < 0 ||
+        selectedCorrectAnswer.value >= options.length) {
+      _showErrorSnackbar(
+        'Validation Error',
+        'Please select a valid correct answer',
+      );
       return false;
     }
 
@@ -412,7 +435,9 @@ class TestQuestionController extends GetxController {
 
   // Get test questions by lesson ID
   List<TestQuestionModel> getQuestionsByLessonId(String lessonId) {
-    return testQuestions.where((question) => question.lessonId == lessonId).toList();
+    return testQuestions
+        .where((question) => question.lessonId == lessonId)
+        .toList();
   }
 
   // Get total number of questions
@@ -469,27 +494,28 @@ class TestQuestionController extends GetxController {
   // Confirmation dialog for delete
   Future<bool> showDeleteConfirmation(String questionText) async {
     return await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Delete Test Question'),
-        content: Text(
-          'Are you sure you want to delete this test question?\n\n"$questionText"\n\nThis action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Get.back(result: true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+          AlertDialog(
+            title: const Text('Delete Test Question'),
+            content: Text(
+              'Are you sure you want to delete this test question?\n\n"$questionText"\n\nThis action cannot be undone.',
             ),
-            child: const Text('Delete'),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Get.back(result: true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
           ),
-        ],
-      ),
-      barrierDismissible: false,
-    ) ?? false;
+          barrierDismissible: false,
+        ) ??
+        false;
   }
 }
