@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -7,8 +8,8 @@ import '../../controller/course/course_lesson_controller.dart';
 import '../../model/course/course_lesson_model.dart';
 import '../../model/course/course_model.dart';
 import 'lesson/add_edit_lesson.dart';
-import 'lesson/add_lesson.dart';
-import 'lesson/edit_lesson.dart';
+import 'test_widget/add_lesson.dart';
+import 'test_widget/edit_lesson.dart';
 
 class ViewCourseScreen extends StatefulWidget {
   final CourseModel course;
@@ -613,7 +614,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         child: InkWell(
           onTap: () {
             // Navigate to lesson detail or start lesson
-            print('Tapped lesson: ${lesson.title}');
+            log('Tapped lesson: ${lesson.title}');
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
@@ -798,7 +799,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                           IconButton(
                             onPressed: () {
                               // Play lesson or navigate
-                              print('Play lesson: ${lesson.title}');
+                              log('Play lesson: ${lesson.title}');
                             },
                             icon: const Icon(
                               Icons.play_arrow,
@@ -808,7 +809,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                           ),
                           IconButton(
                             onPressed: () async {
-                              print('delete lesson: ${lesson.title}');
+                              log('delete lesson: ${lesson.title}');
                               final shouldEdit =
                                   await DialogUtils.showConfirmDialog(
                                     title: 'Delete Lesson',
@@ -852,7 +853,6 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                                   Get.lazyPut(() => CourseLessonController());
                                 }),
                               );
-                              print('edit lesson: ${lesson.title}');
                             },
                             icon: const Icon(
                               Icons.edit,

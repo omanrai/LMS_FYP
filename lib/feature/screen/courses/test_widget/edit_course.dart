@@ -2,10 +2,10 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/utility/image_picker_utils.dart';
-import '../../controller/course/course_controller.dart';
-import '../../model/course/course_model.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utility/image_picker_utils.dart';
+import '../../../controller/course/course_controller.dart';
+import '../../../model/course/course_model.dart';
 
 class EditCourseScreen extends StatefulWidget {
   final CourseModel course;

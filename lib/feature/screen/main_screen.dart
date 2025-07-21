@@ -198,6 +198,13 @@ class _MainScreenState extends State<MainScreen> {
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.class_,
+          title: 'Test Question',
+          subtitle: 'Manage your Test question',
+          color: Colors.amber,
+        ),
+        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.class_,
           title: 'My Classes',
           subtitle: 'Manage your classes',
           color: Colors.amber,
