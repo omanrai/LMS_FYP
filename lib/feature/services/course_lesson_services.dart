@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' as token;
+import 'package:http_parser/http_parser.dart';
 import '../../core/constant/api_url.dart';
 import '../../core/helpers/internet_connection.dart';
 import '../controller/auth/login_controller.dart';
@@ -287,6 +288,7 @@ class CourseLessonService {
             await MultipartFile.fromFile(
               file.path,
               filename: file.path.split('/').last,
+              contentType: MediaType('application', 'pdf'),
             ),
           ),
         );

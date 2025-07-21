@@ -1,80 +1,4 @@
-// class CourseModel {
-//   final String id;
-//   final String title;
-//   final String description;
-//   final String? coverImage;
-//   final List<dynamic> lessons; // You can create a Lesson class later
-//   final int version;
-
-//   CourseModel({
-//     required this.id,
-//     required this.title,
-//     required this.description,
-//     this.coverImage,
-//     required this.lessons,
-//     required this.version,
-//   });
-
-//   // Factory constructor to create Course from JSON
-//   factory CourseModel.fromJson(Map<String, dynamic> json) {
-//     return CourseModel(
-//       id: json['_id'] ?? '',
-//       title: json['title'] ?? '',
-//       description: json['description'] ?? '',
-//       coverImage: json['image'] ?? '',
-//       lessons: json['lessons'] ?? [],
-//       version: json['__v'] ?? 0,
-//     );
-//   }
-
-//   // Convert Course to JSON
-//   Map<String, dynamic> toJson() {
-//     return {
-//       '_id': id,
-//       'title': title,
-//       'description': description,
-//       'image': coverImage,
-//       'lessons': lessons,
-//       '__v': version,
-//     };
-//   }
-
-//   // Create a copy of the course with modified properties
-//   CourseModel copyWith({
-//     String? id,
-//     String? title,
-//     String? description,
-//     String? image,
-//     List<dynamic>? lessons,
-//     int? version,
-//   }) {
-//     return CourseModel(
-//       id: id ?? this.id,
-//       title: title ?? this.title,
-//       description: description ?? this.description,
-//       coverImage: image ?? this.coverImage,
-//       lessons: lessons ?? this.lessons,
-//       version: version ?? this.version,
-//     );
-//   }
-
-//   @override
-//   String toString() {
-//     return 'Course{id: $id, title: $title, description: $description}';
-//   }
-
-//   @override
-//   bool operator ==(Object other) =>
-//       identical(this, other) ||
-//       other is CourseModel &&
-//           runtimeType == other.runtimeType &&
-//           id == other.id;
-
-//   @override
-//   int get hashCode => id.hashCode;
-// }
-
-
+import 'dart:developer';
 
 import 'course_lesson_model.dart';
 
@@ -83,7 +7,7 @@ class CourseModel {
   final String title;
   final String description;
   final String? coverImage;
-  final List<CourseLessonModel> lessons; 
+  final List<CourseLessonModel> lessons;
   final int version;
 
   CourseModel({
@@ -97,12 +21,23 @@ class CourseModel {
 
   // Factory constructor to create Course from JSON
   factory CourseModel.fromJson(Map<String, dynamic> json) {
+    final String title = json['title'] ?? '';
+    final String description = json['description'] ?? '';
+    final String? coverImage = json['image'];
+
+    log('Course Title: $title');
+    log('Course Description: $description');
+    log('Course Cover Image: $coverImage');
+
     // Handle lessons parsing with null safety
     List<CourseLessonModel> parsedLessons = [];
     if (json['lessons'] != null && json['lessons'] is List) {
       parsedLessons = (json['lessons'] as List)
           .where((lesson) => lesson != null)
-          .map((lesson) => CourseLessonModel.fromJson(lesson as Map<String, dynamic>))
+          .map((lesson) {
+            log('Parsing Lesson: $lesson');
+            return CourseLessonModel.fromJson(lesson as Map<String, dynamic>);
+          })
           .toList();
     }
 
@@ -150,7 +85,7 @@ class CourseModel {
   // Helper methods for lesson management
   bool get hasLessons => lessons.isNotEmpty;
   int get lessonCount => lessons.length;
-  
+
   // Get lesson by ID
   CourseLessonModel? getLessonById(String lessonId) {
     try {
@@ -162,9 +97,13 @@ class CourseModel {
 
   // Get lessons by keyword
   List<CourseLessonModel> getLessonsByKeyword(String keyword) {
-    return lessons.where((lesson) => 
-      lesson.keywords.any((k) => k.toLowerCase().contains(keyword.toLowerCase()))
-    ).toList();
+    return lessons
+        .where(
+          (lesson) => lesson.keywords.any(
+            (k) => k.toLowerCase().contains(keyword.toLowerCase()),
+          ),
+        )
+        .toList();
   }
 
   @override

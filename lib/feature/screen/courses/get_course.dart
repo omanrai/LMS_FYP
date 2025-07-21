@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/constant/api_url.dart';
 import '../../../core/utility/dialog_utils.dart';
 import '../../controller/course/course_controller.dart';
 import '../../model/course/course_model.dart';
@@ -497,8 +498,21 @@ class _CourseScreenState extends State<CourseScreen> {
                         topLeft: Radius.circular(16),
                         topRight: Radius.circular(16),
                       ),
+                      // child: Image.network(
+                      //   '$BASE_API${course.coverImage}', // course.coverImage should be like "/media/course-covers/filename.jpg"
+                      //   fit: BoxFit.cover,
+                      //   errorBuilder: (context, error, stackTrace) {
+                      //     return Image.asset(
+                      //       'assets/logo.png',
+                      //       fit: BoxFit.cover,
+                      //     );
+                      //   },
+                      // ),
                       child: course.coverImage != null
-                          ? Image.network(course.coverImage!, fit: BoxFit.cover)
+                          ? Image.network(
+                              '$ASSETS_URL${course.coverImage}',
+                              fit: BoxFit.cover,
+                            )
                           : Image.asset("assets/logo.png", fit: BoxFit.cover),
                     ),
                   ),

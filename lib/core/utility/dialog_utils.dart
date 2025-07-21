@@ -17,9 +17,7 @@ class DialogUtils {
   }) async {
     final result = await Get.dialog<bool>(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             if (icon != null) ...[
@@ -70,7 +68,8 @@ class DialogUtils {
           ElevatedButton(
             onPressed: () => Get.back(result: true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: confirmColor ?? 
+              backgroundColor:
+                  confirmColor ??
                   (isDangerous ? Colors.red : Get.theme.primaryColor),
               foregroundColor: Colors.white,
               elevation: 2,
@@ -85,7 +84,7 @@ class DialogUtils {
       ),
       barrierDismissible: true,
     );
-    
+
     return result ?? false;
   }
 
@@ -138,6 +137,73 @@ class DialogUtils {
     );
   }
 
+  /// Shows a custom styled loading dialog with optional cancel action.
+  static Future<void> showCustomLoadingDialog(
+    // Future<void> showCustomLoadingDialog(
+    BuildContext context, {
+    String message = 'Please wait...',
+    bool barrierDismissible = false,
+    VoidCallback? onCancel,
+  }) {
+    return showDialog(
+      context: context,
+      barrierDismissible: barrierDismissible,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => barrierDismissible,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF6366F1),
+                    ),
+                    strokeWidth: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    message,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF111827),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  if (onCancel != null)
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                        onCancel(); // Trigger cancel logic
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // Success Dialog
   static void showSuccessDialog({
     required String title,
@@ -147,9 +213,7 @@ class DialogUtils {
   }) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Container(
@@ -214,9 +278,7 @@ class DialogUtils {
   }) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Container(
@@ -225,11 +287,7 @@ class DialogUtils {
                 color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
-                Icons.error,
-                color: Colors.red,
-                size: 20,
-              ),
+              child: const Icon(Icons.error, color: Colors.red, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -281,9 +339,7 @@ class DialogUtils {
   }) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Container(
@@ -292,11 +348,7 @@ class DialogUtils {
                 color: Get.theme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                Icons.info,
-                color: Get.theme.primaryColor,
-                size: 20,
-              ),
+              child: Icon(Icons.info, color: Get.theme.primaryColor, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(

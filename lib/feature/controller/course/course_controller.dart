@@ -134,7 +134,7 @@ class CourseController extends GetxController {
         _setLoadingState(CourseLoadingState.loaded);
         log('Successfully fetched ${_courses.length} courses');
       } else {
-        _setError(response.message ?? 'Failed to fetch courses');
+        _setError(response.message);
       }
     } catch (e) {
       _setError(
@@ -243,7 +243,7 @@ class CourseController extends GetxController {
       } else {
         DialogUtils.showErrorDialog(
           title: 'Update Failed',
-          message: response.message ?? 'Failed to update course',
+          message: response.message,
         );
         return false;
       }
@@ -282,7 +282,7 @@ class CourseController extends GetxController {
       } else {
         DialogUtils.showErrorDialog(
           title: 'Delete Failed',
-          message: response.message ?? 'Failed to delete course',
+          message: response.message,
         );
         return false;
       }
