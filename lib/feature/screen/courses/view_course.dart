@@ -21,11 +21,17 @@ class ViewCourseScreen extends StatefulWidget {
 class _ViewCourseScreenState extends State<ViewCourseScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final CourseLessonController courseLessonController = Get.put(
+    CourseLessonController(),
+  );
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    courseLessonController.setCurrentCourseId(widget.course.id);
+    courseLessonController
+        .fetchCourseLessons(); // fetches lessons when screen loads
   }
 
   @override
@@ -120,14 +126,16 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      '${widget.course.lessons.length} Lessons',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    child: Obx(() {
+                      return Text(
+                        '${courseLessonController.lessons.length} Lessons',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      );
+                    }),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -183,7 +191,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
   Widget _buildCourseHeader() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -214,12 +222,21 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildStatItem(
-          icon: Icons.play_circle_outline,
-          label: 'Lessons',
-          value: '${widget.course.lessons.length}',
-          color: const Color(0xFF10B981),
-        ),
+        // _buildStatItem(
+        //   icon: Icons.play_circle_outline,
+        //   label: 'Lessons',
+        //   value: '${widget.course.lessonCount}',
+        //   color: const Color(0xFF10B981),
+        // ),
+        Obx(() {
+          return _buildStatItem(
+            icon: Icons.play_circle_outline,
+            label: 'Lessons',
+            value: '${courseLessonController.lessons.length}',
+            color: const Color(0xFF10B981),
+          );
+        }),
+
         _buildStatItem(
           icon: Icons.people_outline,
           label: 'Students',
@@ -352,14 +369,14 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
 
   Widget _buildOverviewTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader('About This Course'),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -397,9 +414,18 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
   Widget _buildCourseDetails() {
     return Column(
       children: [
+        const Divider(height: 24),
+
         _buildDetailRow('Course ID', widget.course.id),
         const Divider(height: 24),
-        _buildDetailRow('Total Lessons', '${widget.course.lessons.length}'),
+        // _buildDetailRow('Total Lessons', '${widget.course.lessons.length}'),
+        Obx(() {
+          return _buildDetailRow(
+            'Total Lessons',
+            '${courseLessonController.lessons.length}',
+          );
+        }),
+
         const Divider(height: 24),
         _buildDetailRow('Version', 'v${widget.course.version}'),
         const Divider(height: 24),
@@ -434,7 +460,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
 
   Widget _buildWhatYouLearn() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -505,15 +531,27 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
 
   Widget _buildLessonsTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader('Course Content'),
           const SizedBox(height: 16),
-          widget.course.lessons.isEmpty
-              ? _buildEmptyLessonsState()
-              : _buildLessonsList(),
+          // widget.course.lessons.isEmpty
+          //     ? _buildEmptyLessonsState()
+          //     : _buildLessonsList(),
+          Obx(() {
+            if (courseLessonController.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final lessons = courseLessonController.lessons;
+
+            if (lessons.isEmpty) {
+              return _buildEmptyLessonsState();
+            } else {
+              return _buildLessonsList(lessons);
+            }
+          }),
         ],
       ),
     );
@@ -570,10 +608,11 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     );
   }
 
-  Widget _buildLessonsList() {
+  Widget _buildLessonsList(List<CourseLessonModel> lessons) {
     return Container(
+      margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -585,8 +624,8 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
       ),
       child: Column(
         children: List.generate(
-          widget.course.lessons.length,
-          (index) => _buildLessonItem(index, widget.course.lessons[index]),
+          lessons.length,
+          (index) => _buildLessonItem(index, lessons[index]),
         ),
       ),
     );
@@ -622,11 +661,12 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
               children: [
                 // Header Row
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Lesson Number Badge
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 25,
+                      height: 25,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
@@ -648,7 +688,6 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                         child: Text(
                           '${index + 1}',
                           style: const TextStyle(
-                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -665,7 +704,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                           Text(
                             lesson.title,
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF111827),
                               height: 1.2,
@@ -778,6 +817,56 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                                     ],
                                   ),
                                 ),
+                              Spacer(),
+                              IconButton(
+                                onPressed: () async {
+                                  log('delete lesson: ${lesson.title}');
+                                  final shouldEdit =
+                                      await DialogUtils.showConfirmDialog(
+                                        title: 'Delete Lesson',
+                                        message:
+                                            'Are you sure you want to delete "${lesson.title}"? This action cannot be undone.',
+                                        confirmText: 'Delete',
+                                        cancelText: 'Cancel',
+                                        icon: Icons.delete,
+                                        isDangerous: true,
+                                      );
+
+                                  if (shouldEdit) {
+                                    final CourseLessonController
+                                    courseController =
+                                        Get.find<CourseLessonController>();
+
+                                    await courseController.deleteCourseLesson(
+                                      lesson.id,
+                                      courseId: widget.course.id,
+                                    );
+                                  }
+                                },
+                                icon: const Icon(
+                                  Icons.delete_forever,
+                                  color: Color(0xFF6366F1),
+                                  size: 18,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  Get.to(
+                                    () => AddEditLessonScreen(
+                                      course: widget.course,
+                                      lesson: lesson,
+                                    ),
+                                    // binding: BindingsBuilder(() {
+                                    //   Get.lazyPut(() => CourseLessonController());
+                                    // }),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Color(0xFF6366F1),
+                                  size: 18,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -786,79 +875,22 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
 
                     // Action Button
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: 25,
+                      height: 25,
                       decoration: BoxDecoration(
                         color: const Color(0xFF6366F1).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              // Play lesson or navigate
-                              log('Play lesson: ${lesson.title}');
-                            },
-                            icon: const Icon(
-                              Icons.play_arrow,
-                              color: Color(0xFF6366F1),
-                              size: 12,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () async {
-                              log('delete lesson: ${lesson.title}');
-                              final shouldEdit =
-                                  await DialogUtils.showConfirmDialog(
-                                    title: 'Delete Lesson',
-                                    message:
-                                        'Are you sure you want to delete "${lesson.title}"? This action cannot be undone.',
-                                    confirmText: 'Delete',
-                                    cancelText: 'Cancel',
-                                    icon: Icons.delete,
-                                    isDangerous: true,
-                                  );
-
-                              if (shouldEdit) {
-                                final CourseLessonController courseController =
-                                    Get.find<CourseLessonController>();
-
-                                await courseController.deleteCourseLesson(
-                                  lesson.id,
-                                  courseId: widget.course.id,
-                                );
-                              }
-                            },
-                            icon: const Icon(
-                              Icons.delete_forever,
-                              color: Color(0xFF6366F1),
-                              size: 12,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              // Get.to(
-                              //   () => EditLessonScreen(
-                              //     course: widget.course,
-                              //     lesson: lesson,
-                              //   ),
-                              Get.to(
-                                () => AddEditLessonScreen(
-                                  course: widget.course,
-                                  lesson: lesson,
-                                ),
-                                binding: BindingsBuilder(() {
-                                  Get.lazyPut(() => CourseLessonController());
-                                }),
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.edit,
-                              color: Color(0xFF6366F1),
-                              size: 12,
-                            ),
-                          ),
-                        ],
+                      child: IconButton(
+                        onPressed: () {
+                          // Play lesson or navigate
+                          log('Play lesson: ${lesson.title}');
+                        },
+                        icon: const Icon(
+                          Icons.play_arrow,
+                          color: Color(0xFF6366F1),
+                          size: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -958,7 +990,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
 
   Widget _buildReviewsTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1035,14 +1067,11 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
   Widget _buildFloatingActionButton(CourseModel course) {
     return FloatingActionButton.extended(
       onPressed: () {
-        // Add lesson functionality
-        // Get.to(
-        //   () => AddLessonScreen(course: course),
         Get.to(
           () => AddEditLessonScreen(course: course),
-          binding: BindingsBuilder(() {
-            Get.lazyPut(() => CourseLessonController());
-          }),
+          // binding: BindingsBuilder(() {
+          //   Get.lazyPut(() => CourseLessonController());
+          // }),
         );
       },
       backgroundColor: const Color(0xFF6366F1),

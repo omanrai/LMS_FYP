@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'course_lesson_model.dart';
 
 class CourseModel {
@@ -7,7 +6,9 @@ class CourseModel {
   final String title;
   final String description;
   final String? coverImage;
-  final List<CourseLessonModel> lessons;
+  final List<CourseLessonModel> lessons; // Full lesson objects
+  final List<String> lessonIds; // Just lesson IDs
+  final String? teacherId; // Added teacher ID from API response
   final int version;
 
   CourseModel({
@@ -16,6 +17,8 @@ class CourseModel {
     required this.description,
     this.coverImage,
     required this.lessons,
+    required this.lessonIds,
+    this.teacherId,
     required this.version,
   });
 
@@ -24,6 +27,7 @@ class CourseModel {
     final String title = json['title'] ?? '';
     final String description = json['description'] ?? '';
     final String? coverImage = json['image'];
+    final String? teacherId = json['teacher'];
 
     log('Course Title: $title');
     log('Course Description: $description');
@@ -31,22 +35,42 @@ class CourseModel {
 
     // Handle lessons parsing with null safety
     List<CourseLessonModel> parsedLessons = [];
+    List<String> lessonIds = [];
+
     if (json['lessons'] != null && json['lessons'] is List) {
-      parsedLessons = (json['lessons'] as List)
-          .where((lesson) => lesson != null)
-          .map((lesson) {
-            log('Parsing Lesson: $lesson');
-            return CourseLessonModel.fromJson(lesson as Map<String, dynamic>);
-          })
-          .toList();
+      final lessonsData = json['lessons'] as List;
+
+      for (var lessonData in lessonsData) {
+        if (lessonData != null) {
+          try {
+            // Check if lesson data is a string (just ID) or a full object
+            if (lessonData is String) {
+              log('Lesson ID found: $lessonData');
+              lessonIds.add(lessonData);
+            } else if (lessonData is Map<String, dynamic>) {
+              log('Parsing Full Lesson Object: $lessonData');
+              final lesson = CourseLessonModel.fromJson(lessonData);
+              parsedLessons.add(lesson);
+              lessonIds.add(lesson.id);
+            } else {
+              log('Unknown lesson data type: ${lessonData.runtimeType}');
+            }
+          } catch (e) {
+            log('Error parsing lesson: $lessonData, Error: $e');
+            continue;
+          }
+        }
+      }
     }
 
     return CourseModel(
       id: json['_id'] ?? '',
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      coverImage: json['image'],
+      title: title,
+      description: description,
+      coverImage: coverImage,
       lessons: parsedLessons,
+      lessonIds: lessonIds,
+      teacherId: teacherId,
       version: json['__v'] ?? 0,
     );
   }
@@ -58,7 +82,10 @@ class CourseModel {
       'title': title,
       'description': description,
       'image': coverImage,
-      'lessons': lessons.map((lesson) => lesson.toJson()).toList(),
+      'lessons': lessons.isNotEmpty
+          ? lessons.map((lesson) => lesson.toJson()).toList()
+          : lessonIds, // Return IDs if no full lesson objects
+      'teacher': teacherId,
       '__v': version,
     };
   }
@@ -70,6 +97,8 @@ class CourseModel {
     String? description,
     String? coverImage,
     List<CourseLessonModel>? lessons,
+    List<String>? lessonIds,
+    String? teacherId,
     int? version,
   }) {
     return CourseModel(
@@ -78,15 +107,19 @@ class CourseModel {
       description: description ?? this.description,
       coverImage: coverImage ?? this.coverImage,
       lessons: lessons ?? this.lessons,
+      lessonIds: lessonIds ?? this.lessonIds,
+      teacherId: teacherId ?? this.teacherId,
       version: version ?? this.version,
     );
   }
 
-  // Helper methods for lesson management
-  bool get hasLessons => lessons.isNotEmpty;
-  int get lessonCount => lessons.length;
+  // Helper methods
+  bool get hasLessons => lessons.isNotEmpty || lessonIds.isNotEmpty;
+  int get lessonCount => lessons.isNotEmpty ? lessons.length : lessonIds.length;
+  bool get hasFullLessonData => lessons.isNotEmpty;
+  bool get hasOnlyLessonIds => lessons.isEmpty && lessonIds.isNotEmpty;
 
-  // Get lesson by ID
+  // Get lesson by ID (only works if full lesson objects are available)
   CourseLessonModel? getLessonById(String lessonId) {
     try {
       return lessons.firstWhere((lesson) => lesson.id == lessonId);
@@ -95,7 +128,13 @@ class CourseModel {
     }
   }
 
-  // Get lessons by keyword
+  // Check if course has a specific lesson ID
+  bool hasLessonId(String lessonId) {
+    return lessonIds.contains(lessonId) ||
+        lessons.any((lesson) => lesson.id == lessonId);
+  }
+
+  // Get lessons by keyword (only works if full lesson objects are available)
   List<CourseLessonModel> getLessonsByKeyword(String keyword) {
     return lessons
         .where(
@@ -108,7 +147,8 @@ class CourseModel {
 
   @override
   String toString() {
-    return 'CourseModel{id: $id, title: $title, description: $description, lessonsCount: ${lessons.length}}';
+    return 'CourseModel{id: $id, title: $title, description: $description, '
+        'lessonCount: $lessonCount, hasFullLessons: $hasFullLessonData}';
   }
 
   @override

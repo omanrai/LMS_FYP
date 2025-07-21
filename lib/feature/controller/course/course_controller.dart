@@ -50,7 +50,7 @@ class CourseController extends GetxController {
   // Statistics getters
   int get totalCourses => _courses.length;
   int get totalLessons =>
-      _courses.fold(0, (sum, course) => sum + course.lessons.length);
+      _courses.fold(0, (sum, course) => sum + course.lessonCount);
   int get activeCourses => _courses.length; // Assuming all courses are active
 
   late String token;

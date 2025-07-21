@@ -18,11 +18,11 @@ class SnackBarMessage {
     });
   }
 
-  static void showErrorMessage(String message) {
+  static void showErrorMessage(String message, {String error = 'Error'}) {
     // Use a slight delay to ensure navigation completes first
     Future.delayed(const Duration(milliseconds: 300), () {
       Get.snackbar(
-        'Error',
+        error,
         message,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,

@@ -3,6 +3,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/utility/snackbar.dart';
 import '../../model/api_response_model.dart';
 import '../../model/course/test_question_model.dart';
 import '../../services/test_question_services.dart';
@@ -113,7 +114,7 @@ class TestQuestionController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
 
-      Future.delayed(Duration(seconds: 2));
+      await Future.delayed(Duration(seconds: 2));
 
       final ApiResponse<List<TestQuestionModel>> response =
           await TestQuestionService.getTestQuestionList();
@@ -126,13 +127,15 @@ class TestQuestionController extends GetxController {
         hasError.value = true;
         errorMessage.value = response.message;
         log('Failed to fetch test questions: ${response.message}');
-        _showErrorSnackbar('Failed to load test questions', response.message);
+        SnackBarMessage.showErrorMessage(
+          'Failed to load test questions ${response.message}',
+        );
       }
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'An unexpected error occurred';
       log('Error fetching test questions: $e');
-      _showErrorSnackbar('Error', 'An unexpected error occurred');
+      SnackBarMessage.showErrorMessage('An unexpected error occurred');
     } finally {
       isLoading.value = false;
     }
@@ -157,13 +160,15 @@ class TestQuestionController extends GetxController {
         hasError.value = true;
         errorMessage.value = response.message;
         log('Failed to fetch test question by ID: ${response.message}');
-        _showErrorSnackbar('Failed to load test question', response.message);
+        SnackBarMessage.showErrorMessage(
+          'Failed to load test question ${response.message}',
+        );
       }
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'An unexpected error occurred';
       log('Error fetching test question by ID: $e');
-      _showErrorSnackbar('Error', 'An unexpected error occurred');
+      SnackBarMessage.showErrorMessage('An unexpected error occurred');
     } finally {
       isFetchingById.value = false;
     }
@@ -204,20 +209,24 @@ class TestQuestionController extends GetxController {
         clearForm();
 
         log('Test question created successfully: ${response.data!.question}');
-        _showSuccessSnackbar('Success', 'Test question created successfully');
+        SnackBarMessage.showSuccessMessage(
+          'Test question created successfully',
+        );
         return true;
       } else {
         hasError.value = true;
         errorMessage.value = response.message;
         log('Failed to create test question: ${response.message}');
-        _showErrorSnackbar('Failed to create test question', response.message);
+        SnackBarMessage.showErrorMessage(
+          'Failed to create test question ${response.message}',
+        );
         return false;
       }
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'An unexpected error occurred';
       log('Error creating test question: $e');
-      _showErrorSnackbar('Error', 'An unexpected error occurred');
+      SnackBarMessage.showErrorMessage('An unexpected error occurred');
       return false;
     } finally {
       isCreating.value = false;
@@ -263,20 +272,24 @@ class TestQuestionController extends GetxController {
         clearForm();
 
         log('Test question updated successfully: ${response.data!.question}');
-        _showSuccessSnackbar('Success', 'Test question updated successfully');
+        SnackBarMessage.showSuccessMessage(
+          'Test question updated successfully',
+        );
         return true;
       } else {
         hasError.value = true;
         errorMessage.value = response.message;
         log('Failed to update test question: ${response.message}');
-        _showErrorSnackbar('Failed to update test question', response.message);
+        SnackBarMessage.showErrorMessage(
+          'Failed to update test question ${response.message}',
+        );
         return false;
       }
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'An unexpected error occurred';
       log('Error updating test question: $e');
-      _showErrorSnackbar('Error', 'An unexpected error occurred');
+      SnackBarMessage.showErrorMessage('An unexpected error occurred');
       return false;
     } finally {
       isUpdating.value = false;
@@ -299,20 +312,24 @@ class TestQuestionController extends GetxController {
         _filterTestQuestions();
 
         log('Test question deleted successfully: $questionId');
-        _showSuccessSnackbar('Success', 'Test question deleted successfully');
+        SnackBarMessage.showSuccessMessage(
+          'Test question deleted successfully',
+        );
         return true;
       } else {
         hasError.value = true;
         errorMessage.value = response.message;
         log('Failed to delete test question: ${response.message}');
-        _showErrorSnackbar('Failed to delete test question', response.message);
+        SnackBarMessage.showErrorMessage(
+          'Failed to delete test question ${response.message}',
+        );
         return false;
       }
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'An unexpected error occurred';
       log('Error deleting test question: $e');
-      _showErrorSnackbar('Error', 'An unexpected error occurred');
+      SnackBarMessage.showErrorMessage('An unexpected error occurred');
       return false;
     } finally {
       isDeleting.value = false;
@@ -386,13 +403,19 @@ class TestQuestionController extends GetxController {
   bool _validateForm() {
     // Validate question
     if (questionController.text.trim().isEmpty) {
-      _showErrorSnackbar('Validation Error', 'Question is required');
+      SnackBarMessage.showErrorMessage(
+        error: 'Validation Error',
+        'Question is required',
+      );
       return false;
     }
 
     // Validate lesson ID
     if (lessonIdController.text.trim().isEmpty) {
-      _showErrorSnackbar('Validation Error', 'Lesson ID is required');
+      SnackBarMessage.showErrorMessage(
+        error: 'Validation Error',
+        'Lesson ID is required',
+      );
       return false;
     }
 
@@ -403,15 +426,18 @@ class TestQuestionController extends GetxController {
         .toList();
 
     if (options.length < 2) {
-      _showErrorSnackbar('Validation Error', 'At least 2 options are required');
+      SnackBarMessage.showErrorMessage(
+        error: 'Validation Error',
+        'At least 2 options are required',
+      );
       return false;
     }
 
     // Validate correct answer
     if (selectedCorrectAnswer.value < 0 ||
         selectedCorrectAnswer.value >= options.length) {
-      _showErrorSnackbar(
-        'Validation Error',
+      SnackBarMessage.showErrorMessage(
+        error: 'Validation Error',
         'Please select a valid correct answer',
       );
       return false;
@@ -449,46 +475,6 @@ class TestQuestionController extends GetxController {
   // Check if there are any questions for a specific lesson
   bool hasQuestionsForLesson(String lessonId) {
     return testQuestions.any((question) => question.lessonId == lessonId);
-  }
-
-  // Snackbar helpers
-  void _showSuccessSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green.withOpacity(0.1),
-      colorText: Colors.green,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(10),
-      borderRadius: 8,
-    );
-  }
-
-  void _showErrorSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red.withOpacity(0.1),
-      colorText: Colors.red,
-      duration: const Duration(seconds: 4),
-      margin: const EdgeInsets.all(10),
-      borderRadius: 8,
-    );
-  }
-
-  void _showInfoSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.blue.withOpacity(0.1),
-      colorText: Colors.blue,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(10),
-      borderRadius: 8,
-    );
   }
 
   // Confirmation dialog for delete

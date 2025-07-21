@@ -498,22 +498,22 @@ class _CourseScreenState extends State<CourseScreen> {
                         topLeft: Radius.circular(16),
                         topRight: Radius.circular(16),
                       ),
-                      // child: Image.network(
-                      //   '$BASE_API${course.coverImage}', // course.coverImage should be like "/media/course-covers/filename.jpg"
-                      //   fit: BoxFit.cover,
-                      //   errorBuilder: (context, error, stackTrace) {
-                      //     return Image.asset(
-                      //       'assets/logo.png',
-                      //       fit: BoxFit.cover,
-                      //     );
-                      //   },
-                      // ),
-                      child: course.coverImage != null
-                          ? Image.network(
-                              '$ASSETS_URL${course.coverImage}',
-                              fit: BoxFit.cover,
-                            )
-                          : Image.asset("assets/logo.png", fit: BoxFit.cover),
+                      child: Image.network(
+                        '$BASE_API${course.coverImage}', // course.coverImage should be like "/media/course-covers/filename.jpg"
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'assets/logo.png',
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
+                      // child: course.coverImage != null
+                      //     ? Image.network(
+                      //         '$ASSETS_URL${course.coverImage}',
+                      //         fit: BoxFit.cover,
+                      //       )
+                      //     : Image.asset("assets/logo.png", fit: BoxFit.cover),
                     ),
                   ),
                   Positioned(
@@ -528,7 +528,7 @@ class _CourseScreenState extends State<CourseScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${course.lessons.length} Lessons',
+                          '${course.lessonCount} Lessons',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
