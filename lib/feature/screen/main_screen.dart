@@ -5,7 +5,7 @@ import '../controller/auth/login_controller.dart';
 import '../model/auth/user_model.dart';
 import 'auth/login_screen.dart';
 import 'courses/get_course.dart';
-import 'courses/test question/test_question.dart';
+import 'courses/test question/lesson_test_question.dart';
 
 // Main Screen with Bottom Navigation
 class MainScreen extends StatefulWidget {
@@ -197,16 +197,16 @@ class _MainScreenState extends State<MainScreen> {
           },
         ),
         SizedBox(height: 16),
-        _buildDashboardCard(
-          icon: Icons.fact_check,
-          title: 'Test Question',
-          subtitle: 'Manage your Test question',
-          color: Colors.red,
-            onTap: () {
-            Get.to(() => TestQuestionScreen());
-          },
-        ),
-        SizedBox(height: 16),
+        // _buildDashboardCard(
+        //   icon: Icons.fact_check,
+        //   title: 'Test Question',
+        //   subtitle: 'Manage your Test question',
+        //   color: Colors.red,
+        //   onTap: () {
+        //     Get.to(() => LessonTestQuestionScreen());
+        //   },
+        // ),
+        // SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.class_,
           title: 'My Classes',

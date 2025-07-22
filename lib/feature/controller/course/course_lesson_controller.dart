@@ -274,6 +274,15 @@ class CourseLessonController extends GetxController {
     String? courseId,
     String? pdfPath,
   }) async {
+    final shouldCreate = await DialogUtils.showConfirmDialog(
+      title: 'Update Lesson',
+      message: 'Are you sure you want to update this lesson?',
+      confirmText: 'Update',
+      cancelText: 'Cancel',
+      icon: Icons.edit,
+    );
+    if (!shouldCreate) return false;
+
     try {
       DialogUtils.showLoadingDialog(message: 'Updating lesson...');
 
@@ -387,11 +396,11 @@ class CourseLessonController extends GetxController {
   // Delete a lesson
   Future<bool> deleteCourseLesson(String lessonId, {String? courseId}) async {
     log("in delete function lesson ID : $lessonId and Course ID : $courseId");
-    DialogUtils.showLoadingDialog(message: 'Deleting lesson...');
-
-    await Future.delayed(const Duration(seconds: 2));
 
     try {
+      DialogUtils.showLoadingDialog(message: 'Deleting lesson...');
+
+      await Future.delayed(const Duration(seconds: 2));
       isDeleting.value = true;
       clearMessages();
 

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/utility/snackbar.dart';
 import '../../model/api_response_model.dart';
-import '../../model/course/test_question_model.dart';
+import '../../model/course/lesson_test_question_model.dart';
 import '../../services/test_question_services.dart';
 
 class LessonTestQuestionController extends GetxController {
@@ -85,6 +85,7 @@ class LessonTestQuestionController extends GetxController {
       isLoading.value = true;
       hasError.value = false;
       errorMessage.value = '';
+      await Future.delayed(Duration(seconds: 2));
 
       final ApiResponse<List<LessonTestQuestionModel>> response =
           await LessonTestQuestionService.getTestQuestionList(
@@ -99,14 +100,16 @@ class LessonTestQuestionController extends GetxController {
         errorMessage.value = response.message;
         log('Failed to fetch test questions: ${response.message}');
         SnackBarMessage.showErrorMessage(
-          'Failed to load test questions ${response.message}',
+          'Failed to load test questions: ${response.message}',
         );
       }
     } catch (e) {
       hasError.value = true;
-      errorMessage.value = 'An unexpected error occurred';
+      errorMessage.value = 'An unexpected error occurred: ${e.toString()}';
       log('Error fetching test questions: $e');
-      SnackBarMessage.showErrorMessage('An unexpected error occurred');
+      SnackBarMessage.showErrorMessage(
+        'An unexpected error occurred: ${e.toString()}',
+      );
     } finally {
       isLoading.value = false;
     }
@@ -149,7 +152,7 @@ class LessonTestQuestionController extends GetxController {
   }
 
   // Create a new test question
-  Future<bool> createTestQuestion() async {
+  Future<bool> createTestQuestion({List<List<String>>? optionsList}) async {
     try {
       isCreating.value = true;
       hasError.value = false;
@@ -159,13 +162,48 @@ class LessonTestQuestionController extends GetxController {
         return false;
       }
 
-      List<TestQuestion> questions = questionControllers
-          .map(
-            (controller) =>
-                TestQuestion(question: controller.text.trim(), options: []),
-          )
-          .where((q) => q.question.isNotEmpty)
-          .toList();
+      // Build questions with their respective options
+      List<TestQuestion> questions = [];
+      for (int i = 0; i < questionControllers.length; i++) {
+        final questionText = questionControllers[i].text.trim();
+        if (questionText.isNotEmpty) {
+          final options = optionsList != null && i < optionsList.length
+              ? optionsList[i]
+              : <String>[];
+
+          questions.add(TestQuestion(question: questionText, options: options));
+        }
+      }
+
+      // Validate that we have at least one question with options
+      if (questions.isEmpty) {
+        errorMessage.value = 'At least one question is required';
+        return false;
+      }
+
+      // Check if any question has empty options
+      bool hasEmptyOptions = questions.any((q) => q.options.isEmpty);
+      if (hasEmptyOptions) {
+        errorMessage.value = 'All questions must have at least one option';
+        return false;
+      }
+
+      // Validate correct answer index
+      if (selectedCorrectAnswer.value < 0 ||
+          selectedCorrectAnswer.value >= questions.length) {
+        errorMessage.value = 'Please select a valid correct answer';
+        return false;
+      }
+
+      log('Creating test question with data:');
+      log('Title: ${titleController.text.trim()}');
+      log('Lesson ID: ${lessonIdController.text.trim()}');
+      log('Questions count: ${questions.length}');
+      log('Correct Answer Index: ${selectedCorrectAnswer.value}');
+      for (int i = 0; i < questions.length; i++) {
+        log('Question ${i + 1}: ${questions[i].question}');
+        log('Options: ${questions[i].options.join(", ")}');
+      }
 
       final ApiResponse<LessonTestQuestionModel> response =
           await LessonTestQuestionService.createTestQuestion(
@@ -178,25 +216,25 @@ class LessonTestQuestionController extends GetxController {
       if (response.success && response.data != null) {
         testQuestions.add(response.data!);
         clearForm();
-        log('Test question created successfully: ${response.data!.title}');
+        log('✅ Test question created successfully: ${response.data!.title}');
+        log(
+          '✅ Response data: ${response.data!.toJson()}',
+        ); // Assuming you have toJson method
         SnackBarMessage.showSuccessMessage(
           'Test question created successfully',
         );
         return true;
       } else {
-        hasError.value = true;
-        errorMessage.value = response.message;
-        log('Failed to create test question: ${response.message}');
+        log('❌ Failed to create test question: ${response.message}');
         SnackBarMessage.showErrorMessage(
-          'Failed to create test question ${response.message}',
+          'Failed to create test question: ${response.message}',
         );
         return false;
       }
-    } catch (e) {
-      hasError.value = true;
-      errorMessage.value = 'An unexpected error occurred';
-      log('Error creating test question: $e');
-      SnackBarMessage.showErrorMessage('An unexpected error occurred');
+    } catch (e, stackTrace) {
+      log('❌ Error creating test question: $e');
+      log('Stack trace: $stackTrace');
+      SnackBarMessage.showErrorMessage('An unexpected error occurred: $e');
       return false;
     } finally {
       isCreating.value = false;
@@ -224,8 +262,8 @@ class LessonTestQuestionController extends GetxController {
         );
         return true;
       } else {
-        hasError.value = true;
-        errorMessage.value = response.message;
+        // hasError.value = true;
+        // errorMessage.value = response.message;
         log('Failed to delete test question: ${response.message}');
         SnackBarMessage.showErrorMessage(
           'Failed to delete test question ${response.message}',
@@ -233,8 +271,8 @@ class LessonTestQuestionController extends GetxController {
         return false;
       }
     } catch (e) {
-      hasError.value = true;
-      errorMessage.value = 'An unexpected error occurred';
+      // hasError.value = true;
+      // errorMessage.value = 'An unexpected error occurred';
       log('Error deleting test question: $e');
       SnackBarMessage.showErrorMessage('An unexpected error occurred');
       return false;
@@ -276,39 +314,41 @@ class LessonTestQuestionController extends GetxController {
   }
 
   bool _validateForm() {
+    // Clear previous errors
+    errorMessage.value = '';
+
+    // Check title
     if (titleController.text.trim().isEmpty) {
-      SnackBarMessage.showErrorMessage(
-        error: 'Validation Error',
-        'Title is required',
-      );
+      errorMessage.value = 'Title is required';
       return false;
     }
+
+    // Check lesson ID
     if (lessonIdController.text.trim().isEmpty) {
-      SnackBarMessage.showErrorMessage(
-        error: 'Validation Error',
-        'Lesson ID is required',
-      );
+      errorMessage.value = 'Lesson ID is required';
       return false;
     }
-    List<String> questions = questionControllers
-        .map((controller) => controller.text.trim())
-        .where((q) => q.isNotEmpty)
-        .toList();
-    if (questions.isEmpty) {
-      SnackBarMessage.showErrorMessage(
-        error: 'Validation Error',
-        'At least 1 question is required',
-      );
+
+    // Check if we have questions
+    if (questionControllers.isEmpty) {
+      errorMessage.value = 'At least one question is required';
       return false;
     }
-    if (selectedCorrectAnswer.value < 0 ||
-        selectedCorrectAnswer.value >= questions.length) {
-      SnackBarMessage.showErrorMessage(
-        error: 'Validation Error',
-        'Please select a valid correct answer',
-      );
+
+    // Check if all questions have text
+    for (int i = 0; i < questionControllers.length; i++) {
+      if (questionControllers[i].text.trim().isEmpty) {
+        errorMessage.value = 'Question ${i + 1} text is required';
+        return false;
+      }
+    }
+
+    // Check correct answer selection
+    if (selectedCorrectAnswer.value < 0) {
+      errorMessage.value = 'Please select a correct answer';
       return false;
     }
+
     return true;
   }
 

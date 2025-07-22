@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fyp/feature/screen/courses/test%20question/lesson_test_question.dart';
 import 'package:get/get.dart';
 import '../../../core/utility/dialog_utils.dart';
 import '../../controller/course/course_lesson_controller.dart';
@@ -652,6 +653,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
           onTap: () {
             // Navigate to lesson detail or start lesson
             log('Tapped lesson: ${lesson.title}');
+            Get.to(() => LessonTestQuestionScreen(), arguments: lesson);
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
@@ -696,205 +698,180 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                     ),
                     const SizedBox(width: 16),
 
-                    // Lesson Info
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Text(
+                        lesson.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                          height: 1.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Lesson Info
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            lesson.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF111827),
-                              height: 1.2,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          const Icon(
+                            Icons.access_time,
+                            size: 12,
+                            color: Color(0xFF10B981),
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              // Duration
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF10B981,
-                                  ).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.access_time,
-                                      size: 12,
-                                      color: Color(0xFF10B981),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      lesson.formattedReadingDuration,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF10B981),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-
-                              // PDF Indicator
-                              if (lesson.hasPdf)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFFF59E0B,
-                                    ).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.picture_as_pdf,
-                                        size: 12,
-                                        color: Color(0xFFF59E0B),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      const Text(
-                                        'PDF',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFFF59E0B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                              // Tests Indicator
-                              if (lesson.hasTests)
-                                Container(
-                                  margin: const EdgeInsets.only(left: 8),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF8B5CF6,
-                                    ).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.quiz,
-                                        size: 12,
-                                        color: Color(0xFF8B5CF6),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '${lesson.tests.length}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF8B5CF6),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              Spacer(),
-                              IconButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () async {
-                                  log('delete lesson: ${lesson.title}');
-                                  final shouldEdit =
-                                      await DialogUtils.showConfirmDialog(
-                                        title: 'Delete Lesson',
-                                        message:
-                                            'Are you sure you want to delete "${lesson.title}"? This action cannot be undone.',
-                                        confirmText: 'Delete',
-                                        cancelText: 'Cancel',
-                                        icon: Icons.delete,
-                                        isDangerous: true,
-                                      );
-
-                                  if (shouldEdit) {
-                                    // final CourseLessonController
-                                    // courseController =
-                                    //     Get.find<CourseLessonController>();
-
-                                    await courseLessonController
-                                        .deleteCourseLesson(
-                                          lesson.id,
-                                          courseId: widget.course.id,
-                                        );
-                                  }
-                                },
-                                icon: const Icon(
-                                  Icons.delete_forever,
-                                  color: Color(0xFF6366F1),
-                                  size: 18,
-                                ),
-                              ),
-                              IconButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () {
-                                  Get.to(
-                                    () => AddEditLessonScreen(
-                                      course: widget.course,
-                                      lesson: lesson,
-                                    ),
-                                    // binding: BindingsBuilder(() {
-                                    //   Get.lazyPut(() => CourseLessonController());
-                                    // }),
-                                  );
-                                },
-                                icon: const Icon(
-                                  Icons.edit,
-                                  color: Color(0xFF6366F1),
-                                  size: 18,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 4),
+                          Text(
+                            lesson.formattedReadingDuration,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF10B981),
+                            ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
 
-                    // Action Button
-                    Container(
-                      width: 25,
-                      height: 25,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero, // removes default padding
-                        iconSize: 14, // matches icon size
-                        onPressed: () {
-                          log('Play lesson: ${lesson.title}');
-                        },
-                        icon: const Icon(
-                          Icons.play_arrow,
-                          color: Color(0xFF6366F1),
-                          size: 14,
+                    // PDF Indicator
+                    if (lesson.hasPdf)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.picture_as_pdf,
+                              size: 12,
+                              color: Color(0xFFF59E0B),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'PDF',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFF59E0B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Tests Indicator
+                    // if (lesson.tests.isNotEmpty )
+                    GestureDetector(
+                      onTap: () {
+                        Get.to(
+                          () => LessonTestQuestionScreen(),
+                          arguments: lesson,
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.quiz,
+                              size: 12,
+                              color: Color(0xFF8B5CF6),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${lesson.tests.length} Test',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF8B5CF6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Spacer(),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () async {
+                        log('delete lesson: ${lesson.title}');
+                        final shouldEdit = await DialogUtils.showConfirmDialog(
+                          title: 'Delete Lesson',
+                          message:
+                              'Are you sure you want to delete "${lesson.title}"? This action cannot be undone.',
+                          confirmText: 'Delete',
+                          cancelText: 'Cancel',
+                          icon: Icons.delete,
+                          isDangerous: true,
+                        );
+
+                        if (shouldEdit) {
+                          // final CourseLessonController
+                          // courseController =
+                          //     Get.find<CourseLessonController>();
+
+                          await courseLessonController.deleteCourseLesson(
+                            lesson.id,
+                            courseId: widget.course.id,
+                          );
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.delete_forever,
+                        color: Color(0xFF6366F1),
+                        size: 18,
+                      ),
+                    ),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        Get.to(
+                          () => AddEditLessonScreen(
+                            course: widget.course,
+                            lesson: lesson,
+                          ),
+                          // binding: BindingsBuilder(() {
+                          //   Get.lazyPut(() => CourseLessonController());
+                          // }),
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Color(0xFF6366F1),
+                        size: 18,
                       ),
                     ),
                   ],

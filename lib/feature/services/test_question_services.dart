@@ -7,7 +7,7 @@ import '../../core/constant/api_url.dart';
 import '../../core/helpers/internet_connection.dart';
 import '../controller/auth/login_controller.dart';
 import '../model/api_response_model.dart';
-import '../model/course/test_question_model.dart';
+import '../model/course/lesson_test_question_model.dart';
 
 class LessonTestQuestionService {
   static const String testQuestionEndpoint = '/lessons';
@@ -262,6 +262,7 @@ class LessonTestQuestionService {
 
       final requestData = {
         'title': title.trim(),
+        'lesson': lessonId.trim(),
         'questions': questions.map((q) => q.toJson()).toList(),
         'correctAnswer': correctAnswer,
       };
@@ -327,6 +328,10 @@ class LessonTestQuestionService {
       );
     }
   }
+
+  // update
+
+  // static Future<ApiResponse<LessonTestQuestionModel>> updateTestQuestion({});
 
   // Modified deleteTestQuestion method - now requires lessonId parameter
   static Future<ApiResponse<bool>> deleteTestQuestion({

@@ -848,12 +848,18 @@ class _AddEditLessonScreenState extends State<AddEditLessonScreen> {
           courseId: widget.course.id,
           pdfPath: _selectedPdfFile?.path,
         );
+        if (success) {
+          Navigator.pop(context);
+        }
       } else {
         // Create new lesson
         success = await _controller.createCourseLesson(
           courseId: widget.course.id,
           pdfPath: _selectedPdfFile?.path,
         );
+        if (success) {
+          Navigator.pop(context);
+        }
       }
 
       if (success) {

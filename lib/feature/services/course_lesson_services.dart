@@ -446,6 +446,7 @@ class CourseLessonService {
             await MultipartFile.fromFile(
               file.path,
               filename: file.path.split('/').last,
+              contentType: MediaType('application', 'pdf'),
             ),
           ),
         );

@@ -60,7 +60,6 @@ class LessonTestQuestionModel {
   final int correctAnswer;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final int? version;
 
   LessonTestQuestionModel({
     this.id,
@@ -70,14 +69,17 @@ class LessonTestQuestionModel {
     required this.correctAnswer,
     this.createdAt,
     this.updatedAt,
-    this.version,
   });
 
   factory LessonTestQuestionModel.fromJson(Map<String, dynamic> json) {
     return LessonTestQuestionModel(
       id: json['_id'] ?? json['id'],
       title: json['title'] ?? '',
-      lessonId: json['lesson'] ?? json['lessonId'] ?? '',
+      lessonId: json['lesson'] is String
+          ? json['lesson']
+          : json['lesson'] is Map<String, dynamic>
+          ? json['lesson']['_id'] ?? json['lessonId'] ?? ''
+          : json['lessonId'] ?? '',
       questions:
           (json['questions'] as List<dynamic>?)
               ?.map((q) => TestQuestion.fromJson(q as Map<String, dynamic>))
@@ -90,10 +92,8 @@ class LessonTestQuestionModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
           : null,
-      version: json['__v'],
     );
   }
-
   Map<String, dynamic> toJson() {
     return {
       if (id != null) '_id': id,
@@ -103,7 +103,6 @@ class LessonTestQuestionModel {
       'correctAnswer': correctAnswer,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
-      if (version != null) '__v': version,
     };
   }
 
@@ -125,7 +124,6 @@ class LessonTestQuestionModel {
       correctAnswer: correctAnswer ?? this.correctAnswer,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      version: version ?? this.version,
     );
   }
 
