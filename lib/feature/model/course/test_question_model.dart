@@ -1,20 +1,22 @@
-// test_question_model.dart
+// Individual Question model
+import 'course_lesson_model.dart';
 
+// Main Test Question Model (represents the entire test)
 class TestQuestionModel {
   final String? id;
-  final String question;
-  final List<String> options;
+  final String title;
+  final CourseLessonModel? lesson;
+  final List<QuestionModel> questions;
   final int correctAnswer;
-  final String lessonId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   TestQuestionModel({
     this.id,
-    required this.question,
-    required this.options,
+    required this.title,
+    this.lesson,
+    required this.questions,
     required this.correctAnswer,
-    required this.lessonId,
     this.createdAt,
     this.updatedAt,
   });
@@ -23,15 +25,21 @@ class TestQuestionModel {
   factory TestQuestionModel.fromJson(Map<String, dynamic> json) {
     return TestQuestionModel(
       id: json['_id'] ?? json['id'],
-      question: json['question'] ?? '',
-      options: List<String>.from(json['options'] ?? []),
-      correctAnswer: json['correctAnswer'] ?? 0,
-      lessonId: json['lessonId'] ?? '',
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
+      title: json['title'] ?? '',
+      lesson: json['lesson'] != null
+          ? CourseLessonModel.fromJson(json['lesson'])
           : null,
-      updatedAt: json['updatedAt'] != null 
-          ? DateTime.parse(json['updatedAt']) 
+      questions:
+          (json['questions'] as List<dynamic>?)
+              ?.map((q) => QuestionModel.fromJson(q))
+              .toList() ??
+          [],
+      correctAnswer: json['correctAnswer'] ?? 0,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
           : null,
     );
   }
@@ -40,10 +48,10 @@ class TestQuestionModel {
   Map<String, dynamic> toJson() {
     return {
       if (id != null) '_id': id,
-      'question': question,
-      'options': options,
+      'title': title,
+      if (lesson != null) 'lesson': lesson!.toJson(),
+      'questions': questions.map((q) => q.toJson()).toList(),
       'correctAnswer': correctAnswer,
-      'lessonId': lessonId,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
@@ -52,27 +60,33 @@ class TestQuestionModel {
   // Create a copy with updated values
   TestQuestionModel copyWith({
     String? id,
-    String? question,
-    List<String>? options,
+    String? title,
+    CourseLessonModel? lesson,
+    List<QuestionModel>? questions,
     int? correctAnswer,
-    String? lessonId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return TestQuestionModel(
       id: id ?? this.id,
-      question: question ?? this.question,
-      options: options ?? this.options,
+      title: title ?? this.title,
+      lesson: lesson ?? this.lesson,
+      questions: questions ?? this.questions,
       correctAnswer: correctAnswer ?? this.correctAnswer,
-      lessonId: lessonId ?? this.lessonId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
+  // Convenience getters for backward compatibility with your existing UI code
+  String get question => questions.isNotEmpty ? questions.first.question : '';
+  List<String> get options =>
+      questions.isNotEmpty ? questions.first.options : [];
+  String get lessonId => lesson?.id ?? '';
+
   @override
   String toString() {
-    return 'TestQuestionModel(id: $id, question: $question, options: $options, correctAnswer: $correctAnswer, lessonId: $lessonId)';
+    return 'TestQuestionModel(id: $id, title: $title, questions: ${questions.length}, correctAnswer: $correctAnswer, lessonId: $lessonId)';
   }
 
   @override
@@ -80,7 +94,7 @@ class TestQuestionModel {
     if (identical(this, other)) return true;
     return other is TestQuestionModel &&
         other.id == id &&
-        other.question == question &&
+        other.title == title &&
         other.correctAnswer == correctAnswer &&
         other.lessonId == lessonId;
   }
@@ -88,8 +102,32 @@ class TestQuestionModel {
   @override
   int get hashCode {
     return id.hashCode ^
-        question.hashCode ^
+        title.hashCode ^
         correctAnswer.hashCode ^
         lessonId.hashCode;
+  }
+}
+
+class QuestionModel {
+  final String? id;
+  final String question;
+  final List<String> options;
+
+  QuestionModel({this.id, required this.question, required this.options});
+
+  factory QuestionModel.fromJson(Map<String, dynamic> json) {
+    return QuestionModel(
+      id: json['_id'] ?? json['id'],
+      question: json['question'] ?? '',
+      options: List<String>.from(json['options'] ?? []),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) '_id': id,
+      'question': question,
+      'options': options,
+    };
   }
 }

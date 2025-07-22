@@ -315,7 +315,7 @@ class TestQuestionScreen extends StatelessWidget {
           ),
         );
       }
-
+      // Replace the error state section in _buildQuestionsList() method (around line 336)
       if (controller.hasError.value) {
         return SliverFillRemaining(
           child: Center(
@@ -333,55 +333,144 @@ class TestQuestionScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(40),
-                    ),
-                    child: const Icon(
-                      Icons.error_outline_rounded,
-                      size: 40,
-                      color: Colors.red,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Oops! Something went wrong',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    controller.errorMessage.value,
-                    style: const TextStyle(color: Color(0xFF64748B)),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: controller.refreshTestQuestions,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Try Again'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+              child: SingleChildScrollView(
+                // Added SingleChildScrollView
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(40),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      child: const Icon(
+                        Icons.error_outline_rounded,
+                        size: 40,
+                        color: Colors.red,
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Oops! Something went wrong',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      controller.errorMessage.value,
+                      style: const TextStyle(color: Color(0xFF64748B)),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: controller.refreshTestQuestions,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Try Again'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      // Also replace the empty state section in _buildQuestionsList() method
+      if (controller.filteredTestQuestions.isEmpty) {
+        return SliverFillRemaining(
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
                 ],
+              ),
+              child: SingleChildScrollView(
+                // Added SingleChildScrollView
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF667EEA).withValues(alpha: 0.1),
+                            const Color(0xFF764BA2).withValues(alpha: 0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Icon(
+                        Icons.quiz_outlined,
+                        size: 50,
+                        color: Color(0xFF667EEA),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      controller.testQuestions.isEmpty
+                          ? 'No questions yet'
+                          : 'No matching questions',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      controller.testQuestions.isEmpty
+                          ? 'Create your first question to get started'
+                          : 'Try adjusting your search or filters',
+                      style: const TextStyle(color: Color(0xFF64748B)),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          _showCreateQuestionBottomSheet(Get.context!),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Create Question'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF667EEA),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -8,7 +8,6 @@ import '../../../core/utility/dialog_utils.dart';
 import '../../../core/utility/snackbar.dart';
 import '../../model/course/course_model.dart';
 import '../../model/api_response_model.dart';
-import '../../screen/widget/dismiss_dialog.dart';
 import '../../services/course_services.dart';
 import '../auth/login_controller.dart';
 

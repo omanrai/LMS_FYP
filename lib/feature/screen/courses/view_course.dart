@@ -819,6 +819,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                                 ),
                               Spacer(),
                               IconButton(
+                                padding: EdgeInsets.zero,
                                 onPressed: () async {
                                   log('delete lesson: ${lesson.title}');
                                   final shouldEdit =
@@ -833,14 +834,15 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                                       );
 
                                   if (shouldEdit) {
-                                    final CourseLessonController
-                                    courseController =
-                                        Get.find<CourseLessonController>();
+                                    // final CourseLessonController
+                                    // courseController =
+                                    //     Get.find<CourseLessonController>();
 
-                                    await courseController.deleteCourseLesson(
-                                      lesson.id,
-                                      courseId: widget.course.id,
-                                    );
+                                    await courseLessonController
+                                        .deleteCourseLesson(
+                                          lesson.id,
+                                          courseId: widget.course.id,
+                                        );
                                   }
                                 },
                                 icon: const Icon(
@@ -850,6 +852,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                                 ),
                               ),
                               IconButton(
+                                padding: EdgeInsets.zero,
                                 onPressed: () {
                                   Get.to(
                                     () => AddEditLessonScreen(
@@ -878,18 +881,19 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                       width: 25,
                       height: 25,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                        color: const Color(0xFF6366F1).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: IconButton(
+                        padding: EdgeInsets.zero, // removes default padding
+                        iconSize: 14, // matches icon size
                         onPressed: () {
-                          // Play lesson or navigate
                           log('Play lesson: ${lesson.title}');
                         },
                         icon: const Icon(
                           Icons.play_arrow,
                           color: Color(0xFF6366F1),
-                          size: 12,
+                          size: 14,
                         ),
                       ),
                     ),

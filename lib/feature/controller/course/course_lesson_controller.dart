@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../../core/utility/dialog_utils.dart';
 import '../../model/course/course_lesson_model.dart';
 import '../../services/course_lesson_services.dart';
+import 'course_controller.dart';
 
 class CourseLessonController extends GetxController {
   // Observable variables
@@ -218,6 +219,12 @@ class CourseLessonController extends GetxController {
         // Add the new lesson to the list
         lessons.add(response.data!);
         successMessage.value = response.message;
+        try {
+          CourseController courseController = Get.find<CourseController>();
+          await courseController.fetchCourses(showLoading: false);
+        } catch (e) {
+          log('CourseController not found or error refreshing courses: $e');
+        }
         clearControllers();
         log('Lesson created successfully: ${response.data!.title}');
 
@@ -268,6 +275,9 @@ class CourseLessonController extends GetxController {
     String? pdfPath,
   }) async {
     try {
+      DialogUtils.showLoadingDialog(message: 'Updating lesson...');
+
+      await Future.delayed(const Duration(seconds: 2));
       isUpdating.value = true;
       clearMessages();
 
@@ -311,7 +321,7 @@ class CourseLessonController extends GetxController {
         keywords,
         pdfPath: pdfPath,
       );
-
+      DialogUtils.hideDialog();
       if (response.success && response.data != null) {
         // Update the lesson in the list
         int index = lessons.indexWhere((lesson) => lesson.id == lessonId);
@@ -377,6 +387,10 @@ class CourseLessonController extends GetxController {
   // Delete a lesson
   Future<bool> deleteCourseLesson(String lessonId, {String? courseId}) async {
     log("in delete function lesson ID : $lessonId and Course ID : $courseId");
+    DialogUtils.showLoadingDialog(message: 'Deleting lesson...');
+
+    await Future.delayed(const Duration(seconds: 2));
+
     try {
       isDeleting.value = true;
       clearMessages();
@@ -396,6 +410,7 @@ class CourseLessonController extends GetxController {
         targetCourseId,
         lessonId,
       );
+      DialogUtils.hideDialog();
 
       if (response.success) {
         // Remove the lesson from the list
