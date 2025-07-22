@@ -9,8 +9,8 @@ import '../controller/auth/login_controller.dart';
 import '../model/api_response_model.dart';
 import '../model/course/test_question_model.dart';
 
-class TestQuestionService {
-  static const String testQuestionEndpoint = '/test-question';
+class LessonTestQuestionService {
+  static const String testQuestionEndpoint = '/lessons';
 
   static const Duration timeoutDuration = Duration(seconds: 30);
   static late Dio _dio;
@@ -44,25 +44,33 @@ class TestQuestionService {
     );
   }
 
-  // Get all test questions
-  static Future<ApiResponse<List<TestQuestionModel>>>
-  getTestQuestionList() async {
+  // Modified getTestQuestionList method - now requires lessonId parameter
+  static Future<ApiResponse<List<LessonTestQuestionModel>>>
+  getTestQuestionList({required String lessonId}) async {
     try {
-      log('Fetching test question list...');
+      log('Fetching test question list for lesson: $lessonId');
 
       // Check internet connection
       if (!await ConnectivityService.hasInternetConnection()) {
-        return ApiResponse<List<TestQuestionModel>>(
+        return ApiResponse<List<LessonTestQuestionModel>>(
           success: false,
           message: 'No internet connection. Please check your network.',
         );
       }
 
+      // Validate required fields
+      if (lessonId.isEmpty) {
+        return ApiResponse<List<LessonTestQuestionModel>>(
+          success: false,
+          message: 'Lesson ID is required.',
+        );
+      }
+
       // Initialize Dio if not already done
-      TestQuestionService()._initializeDio();
+      LessonTestQuestionService()._initializeDio();
 
       final response = await _dio.get(
-        testQuestionEndpoint,
+        '$testQuestionEndpoint/$lessonId/tests',
         options: Options(contentType: 'application/json'),
       );
 
@@ -71,12 +79,15 @@ class TestQuestionService {
       // Handle successful response
       if (response.statusCode == 200) {
         try {
-          List<TestQuestionModel> testQuestions = [];
+          List<LessonTestQuestionModel> testQuestions = [];
 
           // Check if response.data is a List directly
           if (response.data is List) {
             testQuestions = (response.data as List)
-                .map((questionJson) => TestQuestionModel.fromJson(questionJson))
+                .map(
+                  (questionJson) =>
+                      LessonTestQuestionModel.fromJson(questionJson),
+                )
                 .toList();
           }
           // Or if it's wrapped in an object like {questions: [...]} or {data: [...]}
@@ -85,13 +96,15 @@ class TestQuestionService {
             if (data.containsKey('questions') && data['questions'] is List) {
               testQuestions = (data['questions'] as List)
                   .map(
-                    (questionJson) => TestQuestionModel.fromJson(questionJson),
+                    (questionJson) =>
+                        LessonTestQuestionModel.fromJson(questionJson),
                   )
                   .toList();
             } else if (data.containsKey('data') && data['data'] is List) {
               testQuestions = (data['data'] as List)
                   .map(
-                    (questionJson) => TestQuestionModel.fromJson(questionJson),
+                    (questionJson) =>
+                        LessonTestQuestionModel.fromJson(questionJson),
                   )
                   .toList();
             }
@@ -99,7 +112,7 @@ class TestQuestionService {
 
           log('Parsed ${testQuestions.length} test questions successfully');
 
-          return ApiResponse<List<TestQuestionModel>>(
+          return ApiResponse<List<LessonTestQuestionModel>>(
             success: true,
             message: 'Test questions fetched successfully',
             data: testQuestions,
@@ -107,7 +120,7 @@ class TestQuestionService {
           );
         } catch (parseError) {
           log('Error parsing test questions: $parseError');
-          return ApiResponse<List<TestQuestionModel>>(
+          return ApiResponse<List<LessonTestQuestionModel>>(
             success: false,
             message:
                 'Failed to parse test question data: ${parseError.toString()}',
@@ -122,7 +135,7 @@ class TestQuestionService {
       return _handleDioError(e);
     } catch (e) {
       log('Unexpected error in getTestQuestionList: $e');
-      return ApiResponse<List<TestQuestionModel>>(
+      return ApiResponse<List<LessonTestQuestionModel>>(
         success: false,
         message:
             'An unexpected error occurred while fetching test questions: ${e.toString()}',
@@ -130,34 +143,35 @@ class TestQuestionService {
     }
   }
 
-  // Get a test question by ID
-  static Future<ApiResponse<TestQuestionModel>> getTestQuestionById(
-    String questionId,
-  ) async {
+  // Modified getTestQuestionById method - now requires lessonId parameter
+  static Future<ApiResponse<LessonTestQuestionModel>> getTestQuestionById({
+    required String lessonId,
+    required String testId,
+  }) async {
     try {
-      log('Fetching test question by ID: $questionId');
+      log('Fetching test question by ID: $testId for lesson: $lessonId');
 
       // Check internet connection
       if (!await ConnectivityService.hasInternetConnection()) {
-        return ApiResponse<TestQuestionModel>(
+        return ApiResponse<LessonTestQuestionModel>(
           success: false,
           message: 'No internet connection. Please check your network.',
         );
       }
 
       // Validate required fields
-      if (questionId.isEmpty) {
-        return ApiResponse<TestQuestionModel>(
+      if (lessonId.isEmpty || testId.isEmpty) {
+        return ApiResponse<LessonTestQuestionModel>(
           success: false,
-          message: 'Question ID is required.',
+          message: 'Lesson ID and Test ID are required.',
         );
       }
 
       // Initialize Dio if not already done
-      TestQuestionService()._initializeDio();
+      LessonTestQuestionService()._initializeDio();
 
       final response = await _dio.get(
-        '$testQuestionEndpoint/$questionId',
+        '$testQuestionEndpoint/$lessonId/tests/$testId',
         options: Options(contentType: 'application/json'),
       );
 
@@ -166,7 +180,7 @@ class TestQuestionService {
       // Handle successful response
       if (response.statusCode == 200) {
         try {
-          TestQuestionModel testQuestion;
+          LessonTestQuestionModel testQuestion;
 
           // Parse the test question from response
           if (response.data is Map<String, dynamic>) {
@@ -174,19 +188,19 @@ class TestQuestionService {
 
             // Check different possible response structures
             if (data.containsKey('question')) {
-              testQuestion = TestQuestionModel.fromJson(data['question']);
+              testQuestion = LessonTestQuestionModel.fromJson(data['question']);
             } else if (data.containsKey('data')) {
-              testQuestion = TestQuestionModel.fromJson(data['data']);
+              testQuestion = LessonTestQuestionModel.fromJson(data['data']);
             } else {
-              testQuestion = TestQuestionModel.fromJson(data);
+              testQuestion = LessonTestQuestionModel.fromJson(data);
             }
           } else {
             throw Exception('Invalid response format');
           }
 
-          log('Test question fetched successfully: ${testQuestion.question}');
+          log('Test question fetched successfully: ${testQuestion.title}');
 
-          return ApiResponse<TestQuestionModel>(
+          return ApiResponse<LessonTestQuestionModel>(
             success: true,
             message: 'Test question fetched successfully',
             data: testQuestion,
@@ -194,7 +208,7 @@ class TestQuestionService {
           );
         } catch (parseError) {
           log('Error parsing test question: $parseError');
-          return ApiResponse<TestQuestionModel>(
+          return ApiResponse<LessonTestQuestionModel>(
             success: false,
             message:
                 'Failed to parse test question data: ${parseError.toString()}',
@@ -209,7 +223,7 @@ class TestQuestionService {
       return _handleDioError(e);
     } catch (e) {
       log('Unexpected error in getTestQuestionById: $e');
-      return ApiResponse<TestQuestionModel>(
+      return ApiResponse<LessonTestQuestionModel>(
         success: false,
         message:
             'An unexpected error occurred while fetching test question: ${e.toString()}',
@@ -217,51 +231,43 @@ class TestQuestionService {
     }
   }
 
-  // Create a new test question
-  static Future<ApiResponse<TestQuestionModel>> createTestQuestion({
-    required String question,
-    required List<String> options,
-    required int correctAnswer,
+  // Modified createTestQuestion method - now requires lessonId parameter
+  static Future<ApiResponse<LessonTestQuestionModel>> createTestQuestion({
     required String lessonId,
+    required String title,
+    required List<TestQuestion> questions,
+    required int correctAnswer,
   }) async {
     try {
-      log('Creating new test question: $question');
+      log('Creating new test question for lesson: $lessonId');
 
       // Check internet connection
       if (!await ConnectivityService.hasInternetConnection()) {
-        return ApiResponse<TestQuestionModel>(
+        return ApiResponse<LessonTestQuestionModel>(
           success: false,
           message: 'No internet connection. Please check your network.',
         );
       }
 
       // Initialize Dio if not already done
-      TestQuestionService()._initializeDio();
+      LessonTestQuestionService()._initializeDio();
 
       // Validate required fields
-      if (question.isEmpty || options.isEmpty || lessonId.isEmpty) {
-        return ApiResponse<TestQuestionModel>(
+      if (lessonId.isEmpty || title.isEmpty || questions.isEmpty) {
+        return ApiResponse<LessonTestQuestionModel>(
           success: false,
-          message: 'Question, options, and lesson ID are required.',
-        );
-      }
-
-      if (correctAnswer < 0 || correctAnswer >= options.length) {
-        return ApiResponse<TestQuestionModel>(
-          success: false,
-          message: 'Correct answer index is invalid.',
+          message: 'Lesson ID, title, and questions are required.',
         );
       }
 
       final requestData = {
-        'question': question.trim(),
-        'options': options.map((option) => option.trim()).toList(),
+        'title': title.trim(),
+        'questions': questions.map((q) => q.toJson()).toList(),
         'correctAnswer': correctAnswer,
-        'lessonId': lessonId.trim(),
       };
 
       final response = await _dio.post(
-        testQuestionEndpoint,
+        '$testQuestionEndpoint/$lessonId/tests',
         data: requestData,
         options: Options(contentType: 'application/json'),
       );
@@ -271,7 +277,7 @@ class TestQuestionService {
       // Handle successful response
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {
-          TestQuestionModel testQuestion;
+          LessonTestQuestionModel testQuestion;
 
           // Parse the created test question from response
           if (response.data is Map<String, dynamic>) {
@@ -279,19 +285,19 @@ class TestQuestionService {
 
             // Check different possible response structures
             if (data.containsKey('question')) {
-              testQuestion = TestQuestionModel.fromJson(data['question']);
+              testQuestion = LessonTestQuestionModel.fromJson(data['question']);
             } else if (data.containsKey('data')) {
-              testQuestion = TestQuestionModel.fromJson(data['data']);
+              testQuestion = LessonTestQuestionModel.fromJson(data['data']);
             } else {
-              testQuestion = TestQuestionModel.fromJson(data);
+              testQuestion = LessonTestQuestionModel.fromJson(data);
             }
           } else {
             throw Exception('Invalid response format');
           }
 
-          log('Test question created successfully: ${testQuestion.question}');
+          log('Test question created successfully: ${testQuestion.title}');
 
-          return ApiResponse<TestQuestionModel>(
+          return ApiResponse<LessonTestQuestionModel>(
             success: true,
             message: 'Test question created successfully',
             data: testQuestion,
@@ -299,7 +305,7 @@ class TestQuestionService {
           );
         } catch (parseError) {
           log('Error parsing created test question: $parseError');
-          return ApiResponse<TestQuestionModel>(
+          return ApiResponse<LessonTestQuestionModel>(
             success: false,
             message:
                 'Test question created but failed to parse response: ${parseError.toString()}',
@@ -314,7 +320,7 @@ class TestQuestionService {
       return _handleDioError(e);
     } catch (e) {
       log('Unexpected error in createTestQuestion: $e');
-      return ApiResponse<TestQuestionModel>(
+      return ApiResponse<LessonTestQuestionModel>(
         success: false,
         message:
             'An unexpected error occurred while creating test question: ${e.toString()}',
@@ -322,120 +328,13 @@ class TestQuestionService {
     }
   }
 
-  // Update an existing test question
-  static Future<ApiResponse<TestQuestionModel>> updateTestQuestion({
-    required String questionId,
-    required String question,
-    required List<String> options,
-    required int correctAnswer,
+  // Modified deleteTestQuestion method - now requires lessonId parameter
+  static Future<ApiResponse<bool>> deleteTestQuestion({
     required String lessonId,
+    required String testId,
   }) async {
     try {
-      log('Updating test question: $questionId');
-
-      // Check internet connection
-      if (!await ConnectivityService.hasInternetConnection()) {
-        return ApiResponse<TestQuestionModel>(
-          success: false,
-          message: 'No internet connection. Please check your network.',
-        );
-      }
-
-      // Initialize Dio if not already done
-      TestQuestionService()._initializeDio();
-
-      // Validate required fields
-      if (questionId.isEmpty ||
-          question.isEmpty ||
-          options.isEmpty ||
-          lessonId.isEmpty) {
-        return ApiResponse<TestQuestionModel>(
-          success: false,
-          message:
-              'Question ID, question, options, and lesson ID are required.',
-        );
-      }
-
-      if (correctAnswer < 0 || correctAnswer >= options.length) {
-        return ApiResponse<TestQuestionModel>(
-          success: false,
-          message: 'Correct answer index is invalid.',
-        );
-      }
-
-      final requestData = {
-        'question': question.trim(),
-        'options': options.map((option) => option.trim()).toList(),
-        'correctAnswer': correctAnswer,
-        'lessonId': lessonId.trim(),
-      };
-
-      final response = await _dio.put(
-        '$testQuestionEndpoint/$questionId',
-        data: requestData,
-        options: Options(contentType: 'application/json'),
-      );
-
-      log('Update test question response: ${response.data}');
-
-      // Handle successful response
-      if (response.statusCode == 200) {
-        try {
-          TestQuestionModel testQuestion;
-
-          // Parse the updated test question from response
-          if (response.data is Map<String, dynamic>) {
-            final data = response.data as Map<String, dynamic>;
-
-            // Check different possible response structures
-            if (data.containsKey('question')) {
-              testQuestion = TestQuestionModel.fromJson(data['question']);
-            } else if (data.containsKey('data')) {
-              testQuestion = TestQuestionModel.fromJson(data['data']);
-            } else {
-              testQuestion = TestQuestionModel.fromJson(data);
-            }
-          } else {
-            throw Exception('Invalid response format');
-          }
-
-          log('Test question updated successfully: ${testQuestion.question}');
-
-          return ApiResponse<TestQuestionModel>(
-            success: true,
-            message: 'Test question updated successfully',
-            data: testQuestion,
-            statusCode: response.statusCode,
-          );
-        } catch (parseError) {
-          log('Error parsing updated test question: $parseError');
-          return ApiResponse<TestQuestionModel>(
-            success: false,
-            message:
-                'Test question updated but failed to parse response: ${parseError.toString()}',
-            statusCode: response.statusCode,
-          );
-        }
-      } else {
-        return _handleErrorResponse(response);
-      }
-    } on DioException catch (e) {
-      log('DioException in updateTestQuestion: ${e.message}');
-      return _handleDioError(e);
-    } catch (e) {
-      log('Unexpected error in updateTestQuestion: $e');
-      return ApiResponse<TestQuestionModel>(
-        success: false,
-        message:
-            'An unexpected error occurred while updating test question: ${e.toString()}',
-      );
-    }
-  }
-
-  // Delete a test question
-  static Future<ApiResponse<bool>> deleteTestQuestion(String questionId) async {
-    try {
-      log('Deleting test question: $questionId');
+      log('Deleting test question: $testId for lesson: $lessonId');
 
       // Check internet connection
       if (!await ConnectivityService.hasInternetConnection()) {
@@ -446,18 +345,18 @@ class TestQuestionService {
       }
 
       // Initialize Dio if not already done
-      TestQuestionService()._initializeDio();
+      LessonTestQuestionService()._initializeDio();
 
       // Validate required fields
-      if (questionId.isEmpty) {
+      if (lessonId.isEmpty || testId.isEmpty) {
         return ApiResponse<bool>(
           success: false,
-          message: 'Question ID is required.',
+          message: 'Lesson ID and Test ID are required.',
         );
       }
 
       final response = await _dio.delete(
-        '$testQuestionEndpoint/$questionId',
+        '$testQuestionEndpoint/$lessonId/tests/$testId',
         options: Options(contentType: 'application/json'),
       );
 
@@ -465,7 +364,7 @@ class TestQuestionService {
 
       // Handle successful response
       if (response.statusCode == 200 || response.statusCode == 204) {
-        log('Test question deleted successfully: $questionId');
+        log('Test question deleted successfully: $testId');
 
         return ApiResponse<bool>(
           success: true,

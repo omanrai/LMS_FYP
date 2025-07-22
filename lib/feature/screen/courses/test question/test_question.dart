@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fyp/core/utility/dialog_utils.dart';
 import 'package:get/get.dart';
 import '../../../controller/course/test_question_controller.dart';
 import '../../../model/course/test_question_model.dart';
 
 class TestQuestionScreen extends StatelessWidget {
-  final TestQuestionController controller = Get.put(TestQuestionController());
+  final LessonTestQuestionController controller = Get.put(
+    LessonTestQuestionController(),
+  );
 
   TestQuestionScreen({Key? key}) : super(key: key);
 
@@ -16,7 +19,6 @@ class TestQuestionScreen extends StatelessWidget {
         slivers: [
           _buildSliverAppBar(),
           SliverToBoxAdapter(child: _buildStatsSection()),
-          SliverToBoxAdapter(child: _buildSearchSection()),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(10, 8, 10, 50),
             sliver: _buildQuestionsList(),
@@ -45,10 +47,7 @@ class TestQuestionScreen extends StatelessWidget {
           'Question Bank',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
         ),
-        titlePadding: const EdgeInsets.only(
-          left: 56,
-          bottom: 16,
-        ), // Adjusted padding to avoid overlap
+        titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
         background: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -73,7 +72,7 @@ class TestQuestionScreen extends StatelessWidget {
           ),
           child: IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF667EEA)),
-            onPressed: controller.refreshTestQuestions,
+            onPressed: controller.fetchTestQuestions,
             tooltip: 'Refresh Questions',
           ),
         ),
@@ -90,25 +89,11 @@ class TestQuestionScreen extends StatelessWidget {
             child: Obx(
               () => _buildStatCard(
                 title: 'Total Questions',
-                value: controller.totalQuestionsCount.toString(),
+                value: controller.testQuestions.length.toString(),
                 icon: Icons.quiz_outlined,
                 color: const Color(0xFF3B82F6),
                 gradient: const LinearGradient(
                   colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Obx(
-              () => _buildStatCard(
-                title: 'Filtered Results',
-                value: controller.filteredQuestionsCount.toString(),
-                icon: Icons.filter_list_rounded,
-                color: const Color(0xFF10B981),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF10B981), Color(0xFF047857)],
                 ),
               ),
             ),
@@ -171,112 +156,6 @@ class TestQuestionScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Search & Filter',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSearchField(),
-          const SizedBox(height: 12),
-          _buildLessonFilter(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: TextField(
-        onChanged: controller.updateSearchQuery,
-        decoration: InputDecoration(
-          hintText: 'Search questions or options...',
-          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            color: Color(0xFF64748B),
-          ),
-          suffixIcon: Obx(
-            () => controller.searchQuery.value.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(
-                      Icons.clear_rounded,
-                      color: Color(0xFF64748B),
-                    ),
-                    onPressed: () => controller.updateSearchQuery(''),
-                  )
-                : const SizedBox.shrink(),
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLessonFilter() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: TextField(
-        onChanged: controller.updateLessonFilter,
-        decoration: InputDecoration(
-          hintText: 'Filter by Lesson ID...',
-          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-          prefixIcon: const Icon(Icons.book_rounded, color: Color(0xFF64748B)),
-          suffixIcon: Obx(
-            () => controller.selectedLessonId.value.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(
-                      Icons.clear_rounded,
-                      color: Color(0xFF64748B),
-                    ),
-                    onPressed: () => controller.updateLessonFilter(''),
-                  )
-                : const SizedBox.shrink(),
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildQuestionsList() {
     return Obx(() {
       if (controller.isLoading.value) {
@@ -315,7 +194,7 @@ class TestQuestionScreen extends StatelessWidget {
           ),
         );
       }
-      // Replace the error state section in _buildQuestionsList() method (around line 336)
+
       if (controller.hasError.value) {
         return SliverFillRemaining(
           child: Center(
@@ -333,151 +212,62 @@ class TestQuestionScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: SingleChildScrollView(
-                // Added SingleChildScrollView
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      child: const Icon(
-                        Icons.error_outline_rounded,
-                        size: 40,
-                        color: Colors.red,
-                      ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(40),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Oops! Something went wrong',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
+                    child: const Icon(
+                      Icons.error_outline_rounded,
+                      size: 40,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Oops! Something went wrong',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    controller.errorMessage.value,
+                    style: const TextStyle(color: Color(0xFF64748B)),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: controller.fetchTestQuestions,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Try Again'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      controller.errorMessage.value,
-                      style: const TextStyle(color: Color(0xFF64748B)),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: controller.refreshTestQuestions,
-                      icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Try Again'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-
-      // Also replace the empty state section in _buildQuestionsList() method
-      if (controller.filteredTestQuestions.isEmpty) {
-        return SliverFillRemaining(
-          child: Center(
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
-              child: SingleChildScrollView(
-                // Added SingleChildScrollView
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF667EEA).withValues(alpha: 0.1),
-                            const Color(0xFF764BA2).withValues(alpha: 0.1),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: const Icon(
-                        Icons.quiz_outlined,
-                        size: 50,
-                        color: Color(0xFF667EEA),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      controller.testQuestions.isEmpty
-                          ? 'No questions yet'
-                          : 'No matching questions',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      controller.testQuestions.isEmpty
-                          ? 'Create your first question to get started'
-                          : 'Try adjusting your search or filters',
-                      style: const TextStyle(color: Color(0xFF64748B)),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () =>
-                          _showCreateQuestionBottomSheet(Get.context!),
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Create Question'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF667EEA),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
         );
       }
 
-      if (controller.filteredTestQuestions.isEmpty) {
+      if (controller.testQuestions.isEmpty) {
         return SliverFillRemaining(
           child: Center(
             child: Container(
@@ -516,22 +306,18 @@ class TestQuestionScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    controller.testQuestions.isEmpty
-                        ? 'No questions yet'
-                        : 'No matching questions',
-                    style: const TextStyle(
+                  const Text(
+                    'No questions yet',
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF1E293B),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    controller.testQuestions.isEmpty
-                        ? 'Create your first question to get started'
-                        : 'Try adjusting your search or filters',
-                    style: const TextStyle(color: Color(0xFF64748B)),
+                  const Text(
+                    'Create your first question to get started',
+                    style: TextStyle(color: Color(0xFF64748B)),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -561,18 +347,22 @@ class TestQuestionScreen extends StatelessWidget {
 
       return SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
-          final question = controller.filteredTestQuestions[index];
+          final question = controller.testQuestions[index];
           return _buildQuestionCard(question, context, index);
-        }, childCount: controller.filteredTestQuestions.length),
+        }, childCount: controller.testQuestions.length),
       );
     });
   }
 
   Widget _buildQuestionCard(
-    TestQuestionModel question,
+    LessonTestQuestionModel testQuestion,
     BuildContext context,
     int index,
   ) {
+    final questionData = testQuestion.questions.isNotEmpty
+        ? testQuestion.questions.first
+        : TestQuestion(question: '', options: []);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -588,7 +378,6 @@ class TestQuestionScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Question Header
           Container(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -618,19 +407,35 @@ class TestQuestionScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: Text(
-                        question.question,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
-                          height: 1.5,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            testQuestion.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                              height: 1.5,
+                            ),
+                          ),
+                          if (questionData.question.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              questionData.question,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF64748B),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -655,7 +460,7 @@ class TestQuestionScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Lesson ${question.lessonId}',
+                            'Lesson ${testQuestion.lessonId}',
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.white,
@@ -663,6 +468,25 @@ class TestQuestionScreen extends StatelessWidget {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${testQuestion.questions.length} questions',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF3B82F6),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     const Spacer(),
@@ -682,13 +506,19 @@ class TestQuestionScreen extends StatelessWidget {
                         onSelected: (value) async {
                           switch (value) {
                             case 'edit':
-                              _showEditQuestionDialog(context, question);
+                              _showEditQuestionDialog(context, testQuestion);
                               break;
                             case 'delete':
-                              final confirmed = await controller
-                                  .showDeleteConfirmation(question.question);
+                              final confirmed = await DialogUtils.showConfirmDialog(
+                                title: 'Delete Lesson Test',
+                                message:
+                                    'Are you sure you want to delete this lesson test?',
+                                confirmText: 'Create',
+                                cancelText: 'Cancel',
+                                icon: Icons.delete,
+                              );
                               if (confirmed) {
-                                controller.deleteTestQuestion(question.id!);
+                                controller.deleteTestQuestion(testQuestion.id!);
                               }
                               break;
                           }
@@ -730,129 +560,125 @@ class TestQuestionScreen extends StatelessWidget {
               ],
             ),
           ),
-
-          // Answer Options Section
-          Container(
-            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Answer Options',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ...question.options.asMap().entries.map((entry) {
-                  final optionIndex = entry.key;
-                  final option = entry.value;
-                  final isCorrect = optionIndex == question.correctAnswer;
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isCorrect
-                          ? const Color(0xFF10B981).withValues(alpha: 0.08)
-                          : const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isCorrect
-                            ? const Color(0xFF10B981).withValues(alpha: 0.3)
-                            : const Color(0xFFE2E8F0),
-                        width: isCorrect ? 1.5 : 1,
-                      ),
+          if (questionData.options.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Answer Options',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: isCorrect
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFF94A3B8),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Center(
-                            child: Text(
-                              String.fromCharCode(65 + optionIndex),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                  ),
+                  const SizedBox(height: 12),
+                  ...questionData.options.asMap().entries.map((entry) {
+                    final optionIndex = entry.key;
+                    final option = entry.value;
+                    final isCorrect = optionIndex == testQuestion.correctAnswer;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isCorrect
+                            ? const Color(0xFF10B981).withValues(alpha: 0.08)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isCorrect
+                              ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                              : const Color(0xFFE2E8F0),
+                          width: isCorrect ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: isCorrect
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF94A3B8),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Center(
+                              child: Text(
+                                String.fromCharCode(65 + optionIndex),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            option,
-                            style: TextStyle(
-                              color: isCorrect
-                                  ? const Color(0xFF047857)
-                                  : const Color(0xFF374151),
-                              fontWeight: isCorrect
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                              height: 1.3,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              option,
+                              style: TextStyle(
+                                color: isCorrect
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFF374151),
+                                fontWeight: isCorrect
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                height: 1.3,
+                              ),
                             ),
                           ),
-                        ),
-                        if (isCorrect)
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFF10B981,
-                              ).withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
+                          if (isCorrect)
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFF10B981,
+                                ).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(
+                                Icons.check_rounded,
+                                color: Color(0xFF047857),
+                                size: 16,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.check_rounded,
-                              color: Color(0xFF047857),
-                              size: 16,
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-
-                if (question.createdAt != null) ...[
-                  // const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.schedule_rounded,
-                          size: 16,
-                          color: Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Created ${_formatDateTime(question.createdAt!)}',
-                          style: const TextStyle(
-                            fontSize: 12,
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  if (testQuestion.createdAt != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.schedule_rounded,
+                            size: 16,
                             color: Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            'Created ${_formatDateTime(testQuestion.createdAt!)}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                 ],
-              ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -895,7 +721,7 @@ class TestQuestionScreen extends StatelessWidget {
     BuildContext context,
     String title, {
     required bool isEdit,
-    TestQuestionModel? question,
+    LessonTestQuestionModel? question,
   }) {
     showModalBottomSheet(
       context: context,
@@ -916,7 +742,6 @@ class TestQuestionScreen extends StatelessWidget {
           child: SafeArea(
             child: Column(
               children: [
-                // Header
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: const BoxDecoration(
@@ -950,8 +775,6 @@ class TestQuestionScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Content
                 Expanded(
                   child: SingleChildScrollView(
                     controller: scrollController,
@@ -964,9 +787,8 @@ class TestQuestionScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Question Input
                         const Text(
-                          'Question',
+                          'Title',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -981,18 +803,15 @@ class TestQuestionScreen extends StatelessWidget {
                             border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
                           child: TextField(
-                            controller: controller.questionController,
-                            maxLines: 3,
+                            controller: controller.titleController,
                             decoration: const InputDecoration(
-                              hintText: 'Enter your question here...',
+                              hintText: 'Enter title here...',
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.all(16),
                             ),
                           ),
                         ),
                         const SizedBox(height: 20),
-
-                        // Lesson ID Input
                         const Text(
                           'Lesson ID',
                           style: TextStyle(
@@ -1018,13 +837,11 @@ class TestQuestionScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
-
-                        // Answer Options Section
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              'Answer Options',
+                              'Questions',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -1039,26 +856,24 @@ class TestQuestionScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: IconButton(
-                                onPressed: controller.addOption,
+                                onPressed: controller.addQuestion,
                                 icon: const Icon(
                                   Icons.add_rounded,
                                   color: Color(0xFF667EEA),
                                 ),
-                                tooltip: 'Add Option',
+                                tooltip: 'Add Question',
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16),
-
-                        // Options List
                         Obx(
                           () => Column(
-                            children: controller.optionControllers.asMap().entries.map((
+                            children: controller.questionControllers.asMap().entries.map((
                               entry,
                             ) {
                               final index = entry.key;
-                              final optionController = entry.value;
+                              final questionController = entry.value;
 
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 12),
@@ -1117,14 +932,13 @@ class TestQuestionScreen extends StatelessWidget {
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Text(
-                                            'Option ${String.fromCharCode(65 + index)}',
+                                            'Question ${String.fromCharCode(65 + index)}',
                                             style: const TextStyle(
                                               fontWeight: FontWeight.w600,
                                               color: Color(0xFF374151),
                                             ),
                                           ),
                                         ),
-                                        // Correct Answer Toggle
                                         GestureDetector(
                                           onTap: () {
                                             controller
@@ -1170,13 +984,13 @@ class TestQuestionScreen extends StatelessWidget {
                                           ),
                                         ),
                                         if (controller
-                                                .optionControllers
+                                                .questionControllers
                                                 .length >
-                                            2) ...[
+                                            1) ...[
                                           const SizedBox(width: 8),
                                           GestureDetector(
-                                            onTap: () =>
-                                                controller.removeOption(index),
+                                            onTap: () => controller
+                                                .removeQuestion(index),
                                             child: Container(
                                               padding: const EdgeInsets.all(4),
                                               decoration: BoxDecoration(
@@ -1198,9 +1012,9 @@ class TestQuestionScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 12),
                                     TextField(
-                                      controller: optionController,
+                                      controller: questionController,
                                       decoration: const InputDecoration(
-                                        hintText: 'Enter option text...',
+                                        hintText: 'Enter question text...',
                                         border: InputBorder.none,
                                         contentPadding: EdgeInsets.symmetric(
                                           horizontal: 12,
@@ -1220,8 +1034,6 @@ class TestQuestionScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                // Action Buttons
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: const BoxDecoration(
@@ -1329,7 +1141,7 @@ class TestQuestionScreen extends StatelessWidget {
 
   void _showEditQuestionDialog(
     BuildContext context,
-    TestQuestionModel question,
+    LessonTestQuestionModel question,
   ) {
     controller.populateFormWithQuestion(question);
     _showQuestionBottomSheet(
