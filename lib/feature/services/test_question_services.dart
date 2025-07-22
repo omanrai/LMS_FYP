@@ -10,7 +10,7 @@ import '../model/api_response_model.dart';
 import '../model/course/lesson_test_question_model.dart';
 
 class LessonTestQuestionService {
-  static const String testQuestionEndpoint = '/lessons';
+  static const String testQuestionEndpoint = '/tests';
 
   static const Duration timeoutDuration = Duration(seconds: 30);
   static late Dio _dio;
@@ -44,7 +44,6 @@ class LessonTestQuestionService {
     );
   }
 
-  // Modified getTestQuestionList method - now requires lessonId parameter
   static Future<ApiResponse<List<LessonTestQuestionModel>>>
   getTestQuestionList({required String lessonId}) async {
     try {
@@ -70,7 +69,7 @@ class LessonTestQuestionService {
       LessonTestQuestionService()._initializeDio();
 
       final response = await _dio.get(
-        '$testQuestionEndpoint/$lessonId/tests',
+        '$testQuestionEndpoint/$lessonId',
         options: Options(contentType: 'application/json'),
       );
 
@@ -143,7 +142,6 @@ class LessonTestQuestionService {
     }
   }
 
-  // Modified getTestQuestionById method - now requires lessonId parameter
   static Future<ApiResponse<LessonTestQuestionModel>> getTestQuestionById({
     required String lessonId,
     required String testId,
@@ -171,7 +169,7 @@ class LessonTestQuestionService {
       LessonTestQuestionService()._initializeDio();
 
       final response = await _dio.get(
-        '$testQuestionEndpoint/$lessonId/tests/$testId',
+        '$testQuestionEndpoint/$testId',
         options: Options(contentType: 'application/json'),
       );
 
@@ -231,7 +229,6 @@ class LessonTestQuestionService {
     }
   }
 
-  // Modified createTestQuestion method - now requires lessonId parameter
   static Future<ApiResponse<LessonTestQuestionModel>> createTestQuestion({
     required String lessonId,
     required String title,
@@ -268,7 +265,7 @@ class LessonTestQuestionService {
       };
 
       final response = await _dio.post(
-        '$testQuestionEndpoint/$lessonId/tests',
+        '$testQuestionEndpoint/$lessonId',
         data: requestData,
         options: Options(contentType: 'application/json'),
       );
@@ -361,7 +358,7 @@ class LessonTestQuestionService {
       }
 
       final response = await _dio.delete(
-        '$testQuestionEndpoint/$lessonId/tests/$testId',
+        '$testQuestionEndpoint/$testId',
         options: Options(contentType: 'application/json'),
       );
 

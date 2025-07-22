@@ -138,7 +138,7 @@ class CourseLessonController extends GetxController {
 
       log('Fetching lesson: $lessonId for course: $targetCourseId');
 
-      final response = await CourseLessonService.getCourseLesson(
+      final response = await CourseLessonService.getCourseLessonByID(
         targetCourseId,
         lessonId,
       );

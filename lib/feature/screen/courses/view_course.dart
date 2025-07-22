@@ -715,11 +715,10 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                 ),
 
                 SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.start,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    // Lesson Info
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,

@@ -42,26 +42,18 @@ class LessonTestQuestionScreen extends StatelessWidget {
         icon: const Icon(Icons.arrow_back_rounded),
         onPressed: () => Get.back(),
       ),
-      actions: [
-        Container(
-          margin: const EdgeInsets.only(right: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF667EEA).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF667EEA)),
-            onPressed: controller.fetchTestQuestions,
-            tooltip: 'Refresh Questions',
-          ),
-        ),
-      ],
     );
   }
 
   Widget _buildBody() {
-    return SingleChildScrollView(
-      child: Column(children: [_buildStatsSection(), _buildQuestionsList()]),
+    return RefreshIndicator(
+      onRefresh: () async {
+        await controller.fetchTestQuestions();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(children: [_buildStatsSection(), _buildQuestionsList()]),
+      ),
     );
   }
 
@@ -451,7 +443,8 @@ class LessonTestQuestionScreen extends StatelessWidget {
                                     'Are you sure you want to delete this lesson test?',
                                 confirmText: 'Delete',
                                 cancelText: 'Cancel',
-                                icon: Icons.delete,
+                                icon: Icons.delete_forever,
+                                isDangerous: true,
                               );
                               if (confirmed) {
                                 controller.deleteTestQuestion(testQuestion.id!);

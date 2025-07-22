@@ -13,7 +13,7 @@ import '../model/api_response_model.dart';
 import '../model/course/course_lesson_model.dart';
 
 class CourseLessonService {
-  static const String courseLessonEndpoint = '/courses';
+  static const String courseLessonEndpoint = '/lessons';
   static const Duration timeoutDuration = Duration(seconds: 30);
   static late Dio _dio;
 
@@ -73,7 +73,7 @@ class CourseLessonService {
       CourseLessonService()._initializeDio();
 
       final response = await _dio.get(
-        '$courseLessonEndpoint/$courseId/lessons',
+        "$courseLessonEndpoint/$courseId",
         options: Options(contentType: 'application/json'),
       );
 
@@ -137,7 +137,7 @@ class CourseLessonService {
   }
 
   // Get a specific lesson by ID
-  static Future<ApiResponse<CourseLessonModel>> getCourseLesson(
+  static Future<ApiResponse<CourseLessonModel>> getCourseLessonByID(
     String courseId,
     String lessonId,
   ) async {
@@ -308,13 +308,13 @@ class CourseLessonService {
 
         // Send request with FormData (multipart)
         response = await _dio.post(
-          '$courseLessonEndpoint/$courseId/lessons',
+          '$courseLessonEndpoint/$courseId',
           data: formData,
         );
       } else {
         // Send request with JSON data only (no PDF)
         response = await _dio.post(
-          '$courseLessonEndpoint/$courseId/lessons',
+          '$courseLessonEndpoint/$courseId',
           data: {
             'title': title.trim(),
             'description': description.trim(),
@@ -453,13 +453,14 @@ class CourseLessonService {
 
         // Send request with FormData (multipart)
         response = await _dio.put(
-          '$courseLessonEndpoint/$courseId/lessons/$lessonId',
+          '$courseLessonEndpoint/$lessonId',
+          // '$courseLessonEndpoint/$courseId/lessons/$lessonId',
           data: formData,
         );
       } else {
         // Send request with JSON data only (no PDF)
         response = await _dio.put(
-          '$courseLessonEndpoint/$courseId/lessons/$lessonId',
+          '$courseLessonEndpoint/$lessonId',
           data: {
             'title': title.trim(),
             'description': description.trim(),
@@ -552,7 +553,8 @@ class CourseLessonService {
       }
 
       final response = await _dio.delete(
-        '$courseLessonEndpoint/$courseId/lessons/$lessonId',
+        '$courseLessonEndpoint/$lessonId',
+        // '$courseLessonEndpoint/$courseId/lessons/$lessonId',
         options: Options(contentType: 'application/json'),
       );
 

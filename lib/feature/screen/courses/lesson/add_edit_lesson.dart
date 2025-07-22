@@ -857,9 +857,9 @@ class _AddEditLessonScreenState extends State<AddEditLessonScreen> {
           courseId: widget.course.id,
           pdfPath: _selectedPdfFile?.path,
         );
-        if (success) {
-          Navigator.pop(context);
-        }
+        // if (success) {
+        //   Navigator.pop(context);
+        // }
       }
 
       if (success) {

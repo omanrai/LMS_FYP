@@ -1,10 +1,13 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/utility/clear_focus.dart';
+import '../../../core/utility/dialog_utils.dart';
 import '../../../core/utility/snackbar.dart';
 import '../../model/api_response_model.dart';
 import '../../model/course/lesson_test_question_model.dart';
 import '../../services/test_question_services.dart';
+import 'course_lesson_controller.dart';
 
 class LessonTestQuestionController extends GetxController {
   // Observable lists and variables
@@ -12,6 +15,7 @@ class LessonTestQuestionController extends GetxController {
       <LessonTestQuestionModel>[].obs;
   final Rx<LessonTestQuestionModel?> selectedTestQuestion =
       Rx<LessonTestQuestionModel?>(null);
+  final RxList<int> selectedCorrectAnswers = <int>[].obs;
 
   // Loading states
   final RxBool isLoading = false.obs;
@@ -35,7 +39,7 @@ class LessonTestQuestionController extends GetxController {
   void onInit() {
     super.onInit();
     _initializeQuestionControllers();
-    fetchTestQuestions();
+    // fetchTestQuestions();
   }
 
   @override
@@ -50,6 +54,9 @@ class LessonTestQuestionController extends GetxController {
   void _initializeQuestionControllers() {
     questionControllers.clear();
     questionControllers.add(TextEditingController());
+
+    selectedCorrectAnswers.clear();
+    selectedCorrectAnswers.add(0);
   }
 
   // Dispose question controllers
@@ -153,12 +160,27 @@ class LessonTestQuestionController extends GetxController {
 
   // Create a new test question
   Future<bool> createTestQuestion({List<List<String>>? optionsList}) async {
+    ClearFocus.clearAllFocus;
+    final shouldCreate = await DialogUtils.showConfirmDialog(
+      title: 'Create Lesson Test',
+      message: 'Are you sure you want to create this lesson test?',
+      confirmText: 'Create',
+      cancelText: 'Cancel',
+      icon: Icons.add_circle,
+    );
+
+    if (!shouldCreate) return false;
     try {
+      DialogUtils.showLoadingDialog(message: 'Creating lesson test...');
+
+      await Future.delayed(const Duration(seconds: 2));
+
       isCreating.value = true;
       hasError.value = false;
       errorMessage.value = '';
 
       if (!_validateForm()) {
+        DialogUtils.hideDialog();
         return false;
       }
 
@@ -166,20 +188,17 @@ class LessonTestQuestionController extends GetxController {
       List<TestQuestion> questions = [];
       for (int i = 0; i < questionControllers.length; i++) {
         final questionText = questionControllers[i].text.trim();
-        if (questionText.isNotEmpty) {
-          final options = optionsList != null && i < optionsList.length
-              ? optionsList[i]
-              : <String>[];
-
-          questions.add(TestQuestion(question: questionText, options: options));
-        }
+        final options = optionsList?[i] ?? [];
+        questions.add(TestQuestion(question: questionText, options: options));
       }
 
-      // Validate that we have at least one question with options
-      if (questions.isEmpty) {
-        errorMessage.value = 'At least one question is required';
+      if (questions.isEmpty || questions.any((q) => q.options.isEmpty)) {
+        errorMessage.value = 'Each question must have at least one option';
+        DialogUtils.hideDialog();
         return false;
       }
+
+      final correctAnswer = selectedCorrectAnswers[0];
 
       // Check if any question has empty options
       bool hasEmptyOptions = questions.any((q) => q.options.isEmpty);
@@ -210,16 +229,18 @@ class LessonTestQuestionController extends GetxController {
             lessonId: lessonIdController.text.trim(),
             title: titleController.text.trim(),
             questions: questions,
-            correctAnswer: selectedCorrectAnswer.value,
+            correctAnswer: correctAnswer,
           );
-
+      DialogUtils.hideDialog(); // Hide loading dialog
       if (response.success && response.data != null) {
         testQuestions.add(response.data!);
         clearForm();
         log('✅ Test question created successfully: ${response.data!.title}');
-        log(
-          '✅ Response data: ${response.data!.toJson()}',
-        ); // Assuming you have toJson method
+        log('✅ Response data: ${response.data!.toJson()}');
+        CourseLessonController courseLessonController =
+            Get.find<CourseLessonController>();
+
+        await courseLessonController.fetchCourseLessons();
         SnackBarMessage.showSuccessMessage(
           'Test question created successfully',
         );
@@ -244,6 +265,9 @@ class LessonTestQuestionController extends GetxController {
   // Delete a test question
   Future<bool> deleteTestQuestion(String testId) async {
     try {
+      DialogUtils.showLoadingDialog(message: 'Deleting lesson test...');
+
+      await Future.delayed(const Duration(seconds: 2));
       isDeleting.value = true;
       hasError.value = false;
       errorMessage.value = '';
@@ -253,10 +277,15 @@ class LessonTestQuestionController extends GetxController {
             lessonId: lessonIdController.text.trim(),
             testId: testId,
           );
+      DialogUtils.hideDialog(); // Hide loading dialog
 
       if (response.success) {
         testQuestions.removeWhere((question) => question.id == testId);
         log('Test question deleted successfully: $testId');
+        CourseLessonController courseLessonController =
+            Get.find<CourseLessonController>();
+
+        await courseLessonController.fetchCourseLessons();
         SnackBarMessage.showSuccessMessage(
           'Test question deleted successfully',
         );
@@ -307,10 +336,10 @@ class LessonTestQuestionController extends GetxController {
   void clearForm() {
     titleController.clear();
     lessonIdController.clear();
-    selectedCorrectAnswer.value = 0;
-    for (var controller in questionControllers) {
-      controller.clear();
-    }
+    selectedCorrectAnswers.clear();
+    questionControllers.clear();
+    questionControllers.add(TextEditingController());
+    selectedCorrectAnswers.add(0);
   }
 
   bool _validateForm() {

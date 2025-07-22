@@ -36,10 +36,11 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
       _initializeWithQuestionData();
     } else {
       controller.clearForm();
-      // Initialize with only one question
       controller.questionControllers.clear();
       controller.questionControllers.add(TextEditingController());
       _optionControllersList = [<TextEditingController>[]];
+      controller.selectedCorrectAnswers.clear();
+      controller.selectedCorrectAnswers.add(0); // Default: Option A
 
       if (widget.lessonId != null) {
         controller.lessonIdController.text = widget.lessonId!;
@@ -58,12 +59,17 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
               .toList(),
         )
         .toList();
+
     controller.questionControllers.clear();
+    controller.selectedCorrectAnswers.clear();
+
     for (var question in widget.testQuestion!.questions) {
       controller.questionControllers.add(
         TextEditingController(text: question.question),
       );
     }
+
+    controller.selectedCorrectAnswers.add(widget.testQuestion!.correctAnswer);
   }
 
   @override
@@ -320,15 +326,24 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: IconButton(
-                onPressed: () {
-                  setState(() {
-                    _optionControllersList[questionIndex].add(
-                      TextEditingController(),
-                    );
-                  });
-                },
-                icon: const Icon(Icons.add_rounded, color: Color(0xFF667EEA)),
-                tooltip: 'Add Option',
+                onPressed: _optionControllersList[questionIndex].length >= 4
+                    ? null
+                    : () {
+                        setState(() {
+                          _optionControllersList[questionIndex].add(
+                            TextEditingController(),
+                          );
+                        });
+                      },
+                icon: Icon(
+                  Icons.add_rounded,
+                  color: _optionControllersList[questionIndex].length >= 4
+                      ? Colors.grey
+                      : const Color(0xFF667EEA),
+                ),
+                tooltip: _optionControllersList[questionIndex].length >= 4
+                    ? 'Maximum 4 options allowed'
+                    : 'Add Option',
               ),
             ),
           ],
@@ -358,12 +373,14 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
             color: const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: controller.selectedCorrectAnswer.value == optionIndex
+              color:
+                  controller.selectedCorrectAnswers[questionIndex] ==
+                      optionIndex
                   ? const Color(0xFF10B981)
                   : const Color(0xFFE2E8F0),
               width: controller.selectedCorrectAnswer.value == optionIndex
                   ? 2
-                  : 1,
+                  : 2,
             ),
           ),
           child: Column(
@@ -376,7 +393,8 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
                     height: 24,
                     decoration: BoxDecoration(
                       color:
-                          controller.selectedCorrectAnswer.value == optionIndex
+                          controller.selectedCorrectAnswers[questionIndex] ==
+                              optionIndex
                           ? const Color(0xFF10B981)
                           : const Color(0xFF94A3B8),
                       borderRadius: BorderRadius.circular(12),
@@ -406,7 +424,8 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        controller.selectedCorrectAnswer.value = optionIndex;
+                        controller.selectedCorrectAnswers[questionIndex] =
+                            optionIndex;
                       });
                     },
                     child: Container(
@@ -416,21 +435,23 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
                       ),
                       decoration: BoxDecoration(
                         color:
-                            controller.selectedCorrectAnswer.value ==
+                            controller.selectedCorrectAnswers[questionIndex] ==
                                 optionIndex
                             ? const Color(0xFF10B981)
                             : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        controller.selectedCorrectAnswer.value == optionIndex
+                        controller.selectedCorrectAnswers[questionIndex] ==
+                                optionIndex
                             ? 'Correct'
                             : 'Select',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color:
-                              controller.selectedCorrectAnswer.value ==
+                              controller
+                                      .selectedCorrectAnswers[questionIndex] ==
                                   optionIndex
                               ? Colors.white
                               : const Color(0xFF64748B),
@@ -584,12 +605,19 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
       return;
     }
 
-    if (controller.selectedCorrectAnswer.value < 0) {
-      controller.errorMessage.value = 'Please select a correct answer';
+    // if (controller.selectedCorrectAnswer.value < 0) {
+    //   controller.errorMessage.value = 'Please select a correct answer';
+    //   return;
+    // }
+
+    if (controller.selectedCorrectAnswers.isEmpty ||
+        controller.selectedCorrectAnswers.any((i) => i < 0)) {
+      controller.errorMessage.value =
+          'Please select a correct answer for each question';
       return;
     }
 
-    if (controller.selectedCorrectAnswer.value >=
+    if (controller.selectedCorrectAnswers[0] >=
         _optionControllersList[0].length) {
       controller.errorMessage.value = 'Selected correct answer is invalid';
       return;
