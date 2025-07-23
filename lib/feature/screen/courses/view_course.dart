@@ -2,9 +2,11 @@ import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fyp/feature/model/course/enrollment_model.dart';
 import 'package:flutter_fyp/feature/screen/courses/test%20question/lesson_test_question.dart';
 import 'package:get/get.dart';
 import '../../../core/utility/dialog_utils.dart';
+import '../../controller/auth/login_controller.dart';
 import '../../controller/course/course_lesson_controller.dart';
 import '../../model/course/course_lesson_model.dart';
 import '../../model/course/course_model.dart';
@@ -25,20 +27,30 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
   final CourseLessonController courseLessonController = Get.put(
     CourseLessonController(),
   );
+  late final LoginController loginController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     courseLessonController.setCurrentCourseId(widget.course.id);
-    courseLessonController
-        .fetchCourseLessons(); // fetches lessons when screen loads
+    courseLessonController.fetchCourseLessons();
+    try {
+      loginController = Get.find<LoginController>();
+    } catch (e) {
+      loginController = Get.put(LoginController());
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  bool get isTeacher {
+    final user = loginController.user.value;
+    return user?.role.toLowerCase() == 'teacher';
   }
 
   @override

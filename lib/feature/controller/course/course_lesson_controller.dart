@@ -216,8 +216,6 @@ class CourseLessonController extends GetxController {
         pdfPath: pdfPath,
       );
 
-      DialogUtils.hideDialog(); // Hide loading dialog
-
       if (response.success && response.data != null) {
         // Add the new lesson to the list
         lessons.add(response.data!);
@@ -225,6 +223,7 @@ class CourseLessonController extends GetxController {
         try {
           CourseController courseController = Get.find<CourseController>();
           await courseController.fetchCourses(showLoading: false);
+          DialogUtils.hideDialog(); // Hide loading dialog
         } catch (e) {
           log('CourseController not found or error refreshing courses: $e');
         }

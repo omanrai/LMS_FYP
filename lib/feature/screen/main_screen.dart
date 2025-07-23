@@ -159,6 +159,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildStudentContent() {
     return Column(
       children: [
+        SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.book,
           title: 'My Courses',
@@ -187,6 +188,16 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildTeacherContent() {
     return Column(
       children: [
+        _buildDashboardCard(
+          icon: Icons.book,
+          title: 'Enrollment',
+          subtitle: 'Manage your student enrollment',
+          color: Colors.green,
+          onTap: () {
+            Get.to(() => CourseScreen());
+          },
+        ),
+        SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.library_add_check,
           title: 'My Courses',

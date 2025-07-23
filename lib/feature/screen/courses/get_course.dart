@@ -1,12 +1,13 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_fyp/core/theme/app_colors.dart';
 import 'package:get/get.dart';
-
 import '../../../core/constant/api_url.dart';
+import '../../../core/helpers/status_color.dart';
 import '../../../core/utility/dialog_utils.dart';
 import '../../controller/course/course_controller.dart';
-import '../../controller/auth/login_controller.dart'; // Add this import
+import '../../controller/auth/login_controller.dart';
+import '../../controller/course/enrollment_controller.dart';
 import '../../model/course/course_model.dart';
 import 'add_edit_course.dart';
 import 'view_course.dart';
@@ -20,7 +21,9 @@ class CourseScreen extends StatefulWidget {
 
 class _CourseScreenState extends State<CourseScreen> {
   late final CourseController courseController;
-  late final LoginController loginController; // Add this
+  late final LoginController loginController;
+  late final EnrollmentController enrollmentController;
+  String? selectedStatus;
 
   @override
   void initState() {
@@ -38,7 +41,10 @@ class _CourseScreenState extends State<CourseScreen> {
     } catch (e) {
       loginController = Get.put(LoginController());
     }
-
+    if (loginController.user.value!.role.toLowerCase() == 'student') {
+      enrollmentController = Get.put(EnrollmentController());
+      enrollmentController.getMyEnrollments();
+    }
     // Fetch courses when the screen is initialized
     courseController.fetchCourses();
   }
@@ -49,6 +55,7 @@ class _CourseScreenState extends State<CourseScreen> {
     return user?.role.toLowerCase() == 'teacher';
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -74,7 +81,7 @@ class _CourseScreenState extends State<CourseScreen> {
                   onRefresh: () => courseController.refreshCourses(),
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [_buildContent()],
@@ -218,11 +225,12 @@ class _CourseScreenState extends State<CourseScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF6366F1), Color(0xFF9333EA)],
@@ -253,6 +261,40 @@ class _CourseScreenState extends State<CourseScreen> {
                     color: Color(0xFF6B7280),
                   ),
                 ),
+                if (!isTeacher)
+                  DropdownButton<String>(
+                    value: selectedStatus,
+                    hint: const Text('Enrollment Status'),
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: null,
+                        child: const Text('All Status'),
+                      ),
+                      const DropdownMenuItem<String>(
+                        value: 'approved',
+                        child: Text('Approved'),
+                      ),
+                      const DropdownMenuItem<String>(
+                        value: 'pending',
+                        child: Text('Pending'),
+                      ),
+                      const DropdownMenuItem<String>(
+                        value: 'rejected',
+                        child: Text('Rejected'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedStatus = value;
+                      });
+                    },
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF111827),
+                    ),
+                    dropdownColor: Colors.white,
+                    isExpanded: false,
+                  ),
               ],
             ),
           ),
@@ -464,6 +506,61 @@ class _CourseScreenState extends State<CourseScreen> {
   Widget _buildCoursesGrid() {
     return GetX<CourseController>(
       builder: (controller) {
+        // Filter courses based on selected status for students
+        final filteredCourses = isTeacher || selectedStatus == null
+            ? controller.courses
+            : controller.courses.where((course) {
+                final enrollment = enrollmentController.getEnrollmentForCourse(
+                  course.id,
+                );
+                return enrollment != null &&
+                    enrollment.status.toLowerCase() == selectedStatus;
+              }).toList();
+
+        if (filteredCourses.isEmpty && !isTeacher && selectedStatus != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(48),
+                    ),
+                    child: const Icon(
+                      Icons.school,
+                      size: 48,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'No courses to display',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No courses found with "$selectedStatus" status',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF6B7280),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -473,9 +570,9 @@ class _CourseScreenState extends State<CourseScreen> {
             mainAxisSpacing: 16,
             childAspectRatio: 0.68,
           ),
-          itemCount: controller.courses.length,
+          itemCount: filteredCourses.length,
           itemBuilder: (context, index) {
-            return _buildCourseCard(controller.courses[index]);
+            return _buildCourseCard(filteredCourses[index]);
           },
         );
       },
@@ -483,9 +580,24 @@ class _CourseScreenState extends State<CourseScreen> {
   }
 
   Widget _buildCourseCard(CourseModel course) {
+    final enrollment = !isTeacher
+        ? enrollmentController.getEnrollmentForCourse(course.id)
+        : null;
+
     return GestureDetector(
       onTap: () {
-        Get.to(() => ViewCourseScreen(course: course));
+        if (isTeacher) {
+          Get.to(() => ViewCourseScreen(course: course));
+        } else if (enrollmentController.myEnrollments.first.status ==
+            "approved") {
+          Get.to(
+            () => ViewCourseScreen(
+              course: course,
+              // status: enrollment?.status,
+              // enroll: enrollment,
+            ),
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -535,6 +647,24 @@ class _CourseScreenState extends State<CourseScreen> {
                       ),
                     ),
                   ),
+                  // Add key icon for non-teachers when status is not approved
+                  if (!isTeacher && enrollment?.status != 'approved')
+                    Positioned(
+                      top: 25,
+                      left: 50,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.lock,
+                          color: Colors.white30,
+                          size: 50,
+                        ),
+                      ),
+                    ),
                   Positioned(
                     bottom: 0,
                     left: 8,
@@ -667,24 +797,54 @@ class _CourseScreenState extends State<CourseScreen> {
                             ],
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD1FAE5),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Text(
-                            'Active',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF065F46),
+                        if (!isTeacher && enrollment != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: getStatusBackgroundColor(
+                                enrollment.status,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              enrollment.status,
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                                color: getStatusTextColor(enrollment.status),
+                              ),
                             ),
                           ),
-                        ),
+
+                        if (!isTeacher && enrollment == null)
+                          GestureDetector(
+                            onTap: () {
+                              enrollmentController.createEnrollment(
+                                courseId: course.id,
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                "Enrol Now",
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ],

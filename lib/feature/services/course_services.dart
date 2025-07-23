@@ -12,10 +12,7 @@ import '../model/api_response_model.dart';
 import '../model/course/course_model.dart';
 
 class CourseService {
-  static const String courseListEndpoint = '/course';
-  static const String createCourseEndpoint = '/course';
-  static const String updateCourseEndpoint = '/course';
-  static const String deleteCourseEndpoint = '/course';
+  static const String courseEndpoint = '/course';
 
   static const Duration timeoutDuration = Duration(seconds: 30);
   static late Dio _dio;
@@ -66,7 +63,7 @@ class CourseService {
       CourseService()._initializeDio();
 
       final response = await _dio.get(
-        courseListEndpoint,
+        courseEndpoint,
         options: Options(contentType: 'application/json'),
       );
 
@@ -184,11 +181,11 @@ class CourseService {
         );
 
         // Send request with FormData (multipart)
-        response = await _dio.post(createCourseEndpoint, data: formData);
+        response = await _dio.post(courseEndpoint, data: formData);
       } else {
         // Send request with JSON data only (no image)
         response = await _dio.post(
-          createCourseEndpoint,
+          courseEndpoint,
           data: {'title': title.trim(), 'description': description.trim()},
           options: Options(contentType: 'application/json'),
         );
@@ -306,14 +303,11 @@ class CourseService {
         );
 
         // Send request with FormData (multipart)
-        response = await _dio.put(
-          '$updateCourseEndpoint/$courseId',
-          data: formData,
-        );
+        response = await _dio.put('$courseEndpoint/$courseId', data: formData);
       } else {
         // Send request with JSON data only (no image)
         response = await _dio.put(
-          '$updateCourseEndpoint/$courseId',
+          '$courseEndpoint/$courseId',
           data: {'title': title.trim(), 'description': description.trim()},
           options: Options(contentType: 'application/json'),
         );
@@ -398,7 +392,7 @@ class CourseService {
       }
 
       final response = await _dio.delete(
-        '$deleteCourseEndpoint/$courseId',
+        '$courseEndpoint/$courseId',
         options: Options(contentType: 'application/json'),
       );
 
