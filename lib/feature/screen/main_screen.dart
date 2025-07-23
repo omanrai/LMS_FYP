@@ -5,7 +5,6 @@ import '../controller/auth/login_controller.dart';
 import '../model/auth/user_model.dart';
 import 'auth/login_screen.dart';
 import 'courses/get_course.dart';
-import 'courses/test question/lesson_test_question.dart';
 
 // Main Screen with Bottom Navigation
 class MainScreen extends StatefulWidget {
@@ -165,6 +164,7 @@ class _MainScreenState extends State<MainScreen> {
           title: 'My Courses',
           subtitle: 'View your enrolled courses',
           color: Colors.blue,
+          onTap: () => Get.to(() => CourseScreen()),
         ),
         SizedBox(height: 16),
         _buildDashboardCard(

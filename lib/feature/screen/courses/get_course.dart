@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../core/constant/api_url.dart';
 import '../../../core/utility/dialog_utils.dart';
 import '../../controller/course/course_controller.dart';
+import '../../controller/auth/login_controller.dart'; // Add this import
 import '../../model/course/course_model.dart';
 import 'add_edit_course.dart';
 import 'view_course.dart';
@@ -19,30 +20,39 @@ class CourseScreen extends StatefulWidget {
 
 class _CourseScreenState extends State<CourseScreen> {
   late final CourseController courseController;
+  late final LoginController loginController; // Add this
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize controller if not already registered
+    // Initialize controllers
     try {
       courseController = Get.find<CourseController>();
     } catch (e) {
       courseController = Get.put(CourseController());
     }
 
+    try {
+      loginController = Get.find<LoginController>();
+    } catch (e) {
+      loginController = Get.put(LoginController());
+    }
+
     // Fetch courses when the screen is initialized
     courseController.fetchCourses();
   }
 
-  // void _addCourse() {
-  //   AddCourseBottomSheet.show(context, courseController);
-  // }
+  // Helper method to check if user is teacher
+  bool get isTeacher {
+    final user = loginController.user.value;
+    return user?.role.toLowerCase() == 'teacher';
+  }
 
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Courses'),
+        title: Text(isTeacher ? 'My Courses' : 'Available Courses'),
         backgroundColor: const Color(0xFF6366F1),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -100,13 +110,14 @@ class _CourseScreenState extends State<CourseScreen> {
         // Show courses and quick actions
         return Column(
           children: [
-            _buildStatsCards(),
-            const SizedBox(height: 32),
+            // Only show stats for teachers
+            if (isTeacher) ...[_buildStatsCards(), const SizedBox(height: 32)],
             _buildSectionHeader(),
             const SizedBox(height: 16),
             _buildCoursesGrid(),
             const SizedBox(height: 32),
-            _buildQuickActions(),
+            // Only show quick actions for teachers
+            if (isTeacher) _buildQuickActions(),
           ],
         );
       },
@@ -221,43 +232,52 @@ class _CourseScreenState extends State<CourseScreen> {
             child: const Icon(Icons.school, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'My Courses',
-                  style: TextStyle(
+                  isTeacher ? 'My Courses' : 'Available Courses',
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF111827),
                   ),
                 ),
                 Text(
-                  'Manage your learning journey',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                  isTeacher
+                      ? 'Manage your learning journey'
+                      : 'Explore courses to learn',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF6B7280),
+                  ),
                 ),
               ],
             ),
           ),
-          ElevatedButton.icon(
-            // onPressed: _addCourse,
-            onPressed: () {
-              Get.to(() => AddEditCourseScreen(isEditMode: false));
-            },
-            icon: const Icon(Icons.add, size: 20),
-            label: const Text('Add Course'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
-              foregroundColor: Colors.white,
-              elevation: 3,
-              shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          // Only show Add Course button for teachers
+          if (isTeacher)
+            ElevatedButton.icon(
+              onPressed: () {
+                Get.to(() => AddEditCourseScreen(isEditMode: false));
+              },
+              icon: const Icon(Icons.add, size: 20),
+              label: const Text('Add Course'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+                foregroundColor: Colors.white,
+                elevation: 3,
+                shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-          ),
         ],
       ),
     );
@@ -354,21 +374,23 @@ class _CourseScreenState extends State<CourseScreen> {
   }
 
   Widget _buildSectionHeader() {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Your Courses',
-          style: TextStyle(
+          isTeacher ? 'Your Courses' : 'Available Courses',
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Color(0xFF111827),
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
-          'Create and manage your educational content',
-          style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+          isTeacher
+              ? 'Create and manage your educational content'
+              : 'Browse and enroll in courses',
+          style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
         ),
       ],
     );
@@ -394,42 +416,45 @@ class _CourseScreenState extends State<CourseScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'No courses yet',
-              style: TextStyle(
+            Text(
+              isTeacher ? 'No courses yet' : 'No courses available',
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF111827),
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Get started by creating your first course',
-              style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+            Text(
+              isTeacher
+                  ? 'Get started by creating your first course'
+                  : 'Check back later for new courses',
+              style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              // onPressed: _addCourse,
-              onPressed: () {
-                Get.to(() => AddEditCourseScreen(isEditMode: false));
-              },
-              icon: const Icon(Icons.add, size: 20),
-              label: const Text('Create Your First Course'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
-                foregroundColor: Colors.white,
-                elevation: 3,
-                shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+            // Only show create course button for teachers
+            if (isTeacher)
+              ElevatedButton.icon(
+                onPressed: () {
+                  Get.to(() => AddEditCourseScreen(isEditMode: false));
+                },
+                icon: const Icon(Icons.add, size: 20),
+                label: const Text('Create Your First Course'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                  foregroundColor: Colors.white,
+                  elevation: 3,
+                  shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -499,7 +524,7 @@ class _CourseScreenState extends State<CourseScreen> {
                         topRight: Radius.circular(16),
                       ),
                       child: Image.network(
-                        '$BASE_API${course.coverImage}', // course.coverImage should be like "/media/course-covers/filename.jpg"
+                        '$BASE_API${course.coverImage}',
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(
@@ -508,12 +533,6 @@ class _CourseScreenState extends State<CourseScreen> {
                           );
                         },
                       ),
-                      // child: course.coverImage != null
-                      //     ? Image.network(
-                      //         '$ASSETS_URL${course.coverImage}',
-                      //         fit: BoxFit.cover,
-                      //       )
-                      //     : Image.asset("assets/logo.png", fit: BoxFit.cover),
                     ),
                   ),
                   Positioned(
@@ -535,67 +554,65 @@ class _CourseScreenState extends State<CourseScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(width: 34),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          onPressed: () {
-                            // Get.to(() => EditCourseScreen(course: course));
-                            Get.to(
-                              () => AddEditCourseScreen(
-                                course: course,
-                                isEditMode: true,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 0,
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.delete,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          onPressed: () async {
-                            final shouldEdit = await DialogUtils.showConfirmDialog(
-                              title: 'Delete Course',
-                              message:
-                                  'Are you sure you want to delete "${course.title}"? This action cannot be undone.',
-                              confirmText: 'Delete',
-                              cancelText: 'Cancel',
-                              icon: Icons.delete,
-                              isDangerous: true,
-                            );
-
-                            if (shouldEdit) {
-                              final isDeleted = await courseController
-                                  .deleteCourse(course.id);
-                              log(
-                                'Course deleted: ${course.title}, Success: $isDeleted',
+                        // Only show edit button for teachers
+                        if (isTeacher) ...[
+                          const SizedBox(width: 34),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              Get.to(
+                                () => AddEditCourseScreen(
+                                  course: course,
+                                  isEditMode: true,
+                                ),
                               );
-                            }
-                          },
-                        ),
-
-                        // SizedBox(width: 8),
-                        // Icon(
-                        //   Icons.arrow_forward_ios,
-                        //   color: Colors.white,
-                        //   size: 14,
-                        // ),
+                            },
+                          ),
+                        ],
                       ],
                     ),
                   ),
+                  // Only show delete button for teachers
+                  if (isTeacher)
+                    Positioned(
+                      top: 8,
+                      right: 0,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            onPressed: () async {
+                              final shouldDelete =
+                                  await DialogUtils.showConfirmDialog(
+                                    title: 'Delete Course',
+                                    message:
+                                        'Are you sure you want to delete "${course.title}"? This action cannot be undone.',
+                                    confirmText: 'Delete',
+                                    cancelText: 'Cancel',
+                                    icon: Icons.delete,
+                                    isDangerous: true,
+                                  );
+
+                              if (shouldDelete) {
+                                final isDeleted = await courseController
+                                    .deleteCourse(course.id);
+                                log(
+                                  'Course deleted: ${course.title}, Success: $isDeleted',
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -685,7 +702,7 @@ class _CourseScreenState extends State<CourseScreen> {
       child: Column(
         children: [
           const Text(
-            'Ready to expand your catalog?',
+            'Ready to expand your catalog ?',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -694,7 +711,6 @@ class _CourseScreenState extends State<CourseScreen> {
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
-            // onPressed: _addCourse,
             onPressed: () {
               Get.to(() => AddEditCourseScreen(isEditMode: false));
             },

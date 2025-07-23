@@ -1,3 +1,5 @@
+import 'lesson_test_question_model.dart';
+
 class CourseLessonModel {
   final String id;
   final String title;
@@ -6,7 +8,7 @@ class CourseLessonModel {
   final int readingDuration;
   final String courseId;
   final List<String> keywords;
-  final List<dynamic> tests; // You can create a Test model if needed
+  final List<LessonTestQuestionModel> tests;
   final int version;
 
   CourseLessonModel({
@@ -31,10 +33,16 @@ class CourseLessonModel {
           .toList();
     }
 
-    // Handle tests parsing with null safety
-    List<dynamic> parsedTests = [];
+    // Handle tests parsing with null safety and proper type conversion
+    List<LessonTestQuestionModel> parsedTests = [];
     if (json['tests'] != null && json['tests'] is List) {
-      parsedTests = List<dynamic>.from(json['tests']);
+      parsedTests = (json['tests'] as List)
+          .where((test) => test != null)
+          .map(
+            (test) =>
+                LessonTestQuestionModel.fromJson(test as Map<String, dynamic>),
+          )
+          .toList();
     }
 
     return CourseLessonModel(
@@ -59,7 +67,7 @@ class CourseLessonModel {
       'readingDuration': readingDuration,
       'course': courseId,
       'keywords': keywords,
-      'tests': tests,
+      'tests': tests.map((test) => test.toJson()).toList(),
       '__v': version,
     };
   }
@@ -72,7 +80,7 @@ class CourseLessonModel {
     int? readingDuration,
     String? courseId,
     List<String>? keywords,
-    List<dynamic>? tests,
+    List<LessonTestQuestionModel>? tests,
     int? version,
   }) {
     return CourseLessonModel(
@@ -92,22 +100,42 @@ class CourseLessonModel {
   bool get hasPdf => pdfUrl != null && pdfUrl!.isNotEmpty;
   bool get hasKeywords => keywords.isNotEmpty;
   bool get hasTests => tests.isNotEmpty;
-  
+
+    // Calculates total reading duration from a list of lessons
+  static int totalReadingDuration(List<CourseLessonModel> lessons) {
+    return lessons.fold(0, (sum, lesson) => sum + lesson.readingDuration);
+  }
+
+
+  // Returns formatted total reading time (e.g., "3h 20m")
+  static String formattedTotalReadingDuration(List<CourseLessonModel> lessons) {
+    int total = totalReadingDuration(lessons);
+    if (total <= 0) return "No duration";
+
+    int hours = total ~/ 60;
+    int minutes = total % 60;
+
+    if (hours > 0 && minutes > 0) return "${hours}h ${minutes}m";
+    if (hours > 0) return "${hours}h";
+    return "${minutes}m";
+  }
+
+
   // Format reading duration
   String get formattedReadingDuration {
     if (readingDuration <= 0) return "No duration specified";
     if (readingDuration < 60) return "${readingDuration}m";
-    
+
     int hours = readingDuration ~/ 60;
     int minutes = readingDuration % 60;
-    
+
     if (minutes == 0) return "${hours}h";
     return "${hours}h ${minutes}m";
   }
 
   @override
   String toString() {
-    return 'CourseLessonModel(id: $id, title: $title, description: $description, pdfUrl: $pdfUrl, readingDuration: $readingDuration, courseId: $courseId, keywords: $keywords, tests: $tests, version: $version)';
+    return 'CourseLessonModel(id: $id, title: $title, description: $description, pdfUrl: $pdfUrl, readingDuration: $readingDuration, courseId: $courseId, keywords: $keywords, tests: ${tests.length} tests, version: $version)';
   }
 
   @override

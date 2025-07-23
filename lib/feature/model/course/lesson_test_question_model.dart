@@ -1,6 +1,3 @@
-// test_question_model.dart
-
-// Model for individual questions within a test
 class TestQuestion {
   final String? id;
   final String question;

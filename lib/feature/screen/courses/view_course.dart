@@ -43,23 +43,36 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                _buildCourseHeader(),
-                _buildTabSection(),
-                _buildTabContent(),
-              ],
+    return Obx(() {
+      if (courseLessonController.isLoading.value) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFF),
+          body: const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
             ),
           ),
-        ],
-      ),
-      floatingActionButton: _buildFloatingActionButton(widget.course),
-    );
+        );
+      }
+
+      return Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            _buildSliverAppBar(),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  _buildCourseHeader(),
+                  _buildTabSection(),
+                  _buildTabContent(),
+                ],
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: _buildFloatingActionButton(widget.course),
+      );
+    });
   }
 
   Widget _buildSliverAppBar() {
@@ -223,12 +236,6 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        // _buildStatItem(
-        //   icon: Icons.play_circle_outline,
-        //   label: 'Lessons',
-        //   value: '${widget.course.lessonCount}',
-        //   color: const Color(0xFF10B981),
-        // ),
         Obx(() {
           return _buildStatItem(
             icon: Icons.play_circle_outline,
@@ -253,7 +260,9 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         _buildStatItem(
           icon: Icons.access_time,
           label: 'Duration',
-          value: '2h 30m',
+          value: CourseLessonModel.formattedTotalReadingDuration(
+            courseLessonController.lessons,
+          ),
           color: const Color(0xFF8B5CF6),
         ),
       ],
@@ -862,9 +871,6 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                             course: widget.course,
                             lesson: lesson,
                           ),
-                          // binding: BindingsBuilder(() {
-                          //   Get.lazyPut(() => CourseLessonController());
-                          // }),
                         );
                       },
                       icon: const Icon(

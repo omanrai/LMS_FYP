@@ -8,7 +8,8 @@ class CourseModel {
   final String? coverImage;
   final List<CourseLessonModel> lessons; // Full lesson objects
   final List<String> lessonIds; // Just lesson IDs
-  final String? teacherId; // Added teacher ID from API response
+  final String? teacherId;
+  final List<String> reviewIds; // NEW: list of review IDs
   final int version;
 
   CourseModel({
@@ -19,10 +20,11 @@ class CourseModel {
     required this.lessons,
     required this.lessonIds,
     this.teacherId,
+    required this.reviewIds, // NEW
     required this.version,
   });
 
-  // Factory constructor to create Course from JSON
+  // Factory constructor to create CourseModel from JSON
   factory CourseModel.fromJson(Map<String, dynamic> json) {
     final String title = json['title'] ?? '';
     final String description = json['description'] ?? '';
@@ -43,13 +45,14 @@ class CourseModel {
       for (var lessonData in lessonsData) {
         if (lessonData != null) {
           try {
-            // Check if lesson data is a string (just ID) or a full object
             if (lessonData is String) {
               log('Lesson ID found: $lessonData');
               lessonIds.add(lessonData);
             } else if (lessonData is Map<String, dynamic>) {
               log('Parsing Full Lesson Object: $lessonData');
-              final lesson = CourseLessonModel.fromJson(lessonData);
+              final lesson = CourseLessonModel.fromJson(
+                lessonData as Map<String, dynamic>,
+              );
               parsedLessons.add(lesson);
               lessonIds.add(lesson.id);
             } else {
@@ -63,6 +66,11 @@ class CourseModel {
       }
     }
 
+    // Parse reviews (list of IDs)
+    final List<String> reviewIds = json['reviews'] != null
+        ? List<String>.from(json['reviews'])
+        : [];
+
     return CourseModel(
       id: json['_id'] ?? '',
       title: title,
@@ -71,11 +79,12 @@ class CourseModel {
       lessons: parsedLessons,
       lessonIds: lessonIds,
       teacherId: teacherId,
+      reviewIds: reviewIds,
       version: json['__v'] ?? 0,
     );
   }
 
-  // Convert Course to JSON
+  // Convert CourseModel to JSON
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
@@ -84,8 +93,9 @@ class CourseModel {
       'image': coverImage,
       'lessons': lessons.isNotEmpty
           ? lessons.map((lesson) => lesson.toJson()).toList()
-          : lessonIds, // Return IDs if no full lesson objects
+          : lessonIds,
       'teacher': teacherId,
+      'reviews': reviewIds,
       '__v': version,
     };
   }
@@ -99,6 +109,7 @@ class CourseModel {
     List<CourseLessonModel>? lessons,
     List<String>? lessonIds,
     String? teacherId,
+    List<String>? reviewIds,
     int? version,
   }) {
     return CourseModel(
@@ -109,6 +120,7 @@ class CourseModel {
       lessons: lessons ?? this.lessons,
       lessonIds: lessonIds ?? this.lessonIds,
       teacherId: teacherId ?? this.teacherId,
+      reviewIds: reviewIds ?? this.reviewIds,
       version: version ?? this.version,
     );
   }
@@ -119,7 +131,6 @@ class CourseModel {
   bool get hasFullLessonData => lessons.isNotEmpty;
   bool get hasOnlyLessonIds => lessons.isEmpty && lessonIds.isNotEmpty;
 
-  // Get lesson by ID (only works if full lesson objects are available)
   CourseLessonModel? getLessonById(String lessonId) {
     try {
       return lessons.firstWhere((lesson) => lesson.id == lessonId);
@@ -128,13 +139,11 @@ class CourseModel {
     }
   }
 
-  // Check if course has a specific lesson ID
   bool hasLessonId(String lessonId) {
     return lessonIds.contains(lessonId) ||
         lessons.any((lesson) => lesson.id == lessonId);
   }
 
-  // Get lessons by keyword (only works if full lesson objects are available)
   List<CourseLessonModel> getLessonsByKeyword(String keyword) {
     return lessons
         .where(

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 class UserModel {
   final String id;
   final String email;

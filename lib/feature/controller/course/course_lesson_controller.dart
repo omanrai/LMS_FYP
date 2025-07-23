@@ -94,6 +94,8 @@ class CourseLessonController extends GetxController {
       isLoading.value = true;
       clearMessages();
 
+      await Future.delayed(Duration(seconds: 2));
+
       String targetCourseId = courseId ?? currentCourseId.value;
       if (targetCourseId.isEmpty) {
         throw Exception('Course ID is required');
@@ -126,6 +128,7 @@ class CourseLessonController extends GetxController {
     try {
       isLoading.value = true;
       clearMessages();
+      await Future.delayed(Duration(seconds: 2));
 
       String targetCourseId = courseId ?? currentCourseId.value;
       if (targetCourseId.isEmpty) {
