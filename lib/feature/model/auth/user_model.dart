@@ -7,6 +7,7 @@ class UserModel {
   final String? image;
   final String role;
   final String token;
+  final List<dynamic> enrollments;
 
   UserModel({
     required this.id,
@@ -15,11 +16,11 @@ class UserModel {
     this.image,
     required this.role,
     required this.token,
+    required this.enrollments,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     final userJson = json['user'] ?? json;
-    log("user json in user model : $userJson");
 
     return UserModel(
       id: userJson['_id'] ?? '',
@@ -27,7 +28,8 @@ class UserModel {
       name: userJson['name'] ?? 'Default Name',
       image: userJson['image'] ?? 'assets/logo.png',
       role: userJson['role'] ?? '',
-      token: json['accessToken'], // top-level token
+      token: json['accessToken'] ?? '', // Added null safety
+      enrollments: userJson['enrollments'] ?? [],
     );
   }
 
@@ -38,7 +40,8 @@ class UserModel {
       'name': name,
       'image': image,
       'role': role,
-      'accessToken': token, // Include token when serializing
+      'accessToken': token,
+      'enrollments': enrollments,
     };
   }
 }

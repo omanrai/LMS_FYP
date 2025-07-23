@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
-
 import '../../screen/auth/login_screen.dart';
 import '../../services/api_services.dart';
 
@@ -16,6 +15,10 @@ class RegistrationController extends GetxController {
   final RxBool isImageUploading = false.obs;
   final RxBool isPasswordVisible = false.obs;
   final Rx<File?> selectedImage = Rx<File?>(null);
+
+  // Added role selection
+  final RxString selectedRole = ''.obs;
+  final List<String> roles = ['student', 'teacher'];
 
   @override
   void onClose() {
@@ -35,6 +38,11 @@ class RegistrationController extends GetxController {
 
   void setImageUploading(bool loading) {
     isImageUploading.value = loading;
+  }
+
+  // Added role selection method
+  void setSelectedRole(String role) {
+    selectedRole.value = role;
   }
 
   String? validateEmail(String? value) {
@@ -67,20 +75,42 @@ class RegistrationController extends GetxController {
     return null;
   }
 
+  // Added role validation method
+  String? validateRole() {
+    if (selectedRole.value.isEmpty) {
+      return 'Please select a role';
+    }
+    return null;
+  }
+
   Future<void> registerUser() async {
     FocusScope.of(Get.context!).unfocus();
 
+    // Validate form and role
     if (!registerFormKey.currentState!.validate()) {
       return;
     }
 
-    isLoading.value = true;
+    // Check role validation separately since it's not a TextFormField
+    if (validateRole() != null) {
+      Get.snackbar(
+        'Validation Error',
+        'Please select a role (Student or Teacher)',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+      return;
+    }
 
+    isLoading.value = true;
     try {
       final response = await ApiService.registerUser(
         emailController.text.trim(),
         passwordController.text,
         nameController.text.trim(),
+        selectedRole.value,
         imagePath:
             selectedImage.value?.path, // Pass the image path if available
       );
@@ -125,6 +155,7 @@ class RegistrationController extends GetxController {
     passwordController.clear();
     nameController.clear();
     selectedImage.value = null;
+    selectedRole.value = ''; // Clear selected role
     isPasswordVisible.value = false;
   }
 }

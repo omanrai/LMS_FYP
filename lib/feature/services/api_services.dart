@@ -38,7 +38,8 @@ class ApiService {
   static Future<ApiResponse<Map<String, dynamic>>> registerUser(
     String email,
     String password,
-    String name, {
+    String name,
+    String role, {
     String? imagePath, // Made optional and nullable
   }) async {
     try {
@@ -57,12 +58,13 @@ class ApiService {
       log('Debug - Email: $email');
       log('Debug - Password: $password');
       log('Debug - Name: $name');
+      log('Debug - Role: $role');
       log('Debug - Image path: ${imagePath ?? "No image provided"}');
 
-      if (email.isEmpty || password.isEmpty || name.isEmpty) {
+      if (email.isEmpty || password.isEmpty || name.isEmpty || role.isEmpty) {
         return ApiResponse<Map<String, dynamic>>(
           success: false,
-          message: 'Email, password, and name cannot be empty.',
+          message: 'Email, password, role and name cannot be empty.',
         );
       }
 
@@ -82,6 +84,7 @@ class ApiService {
         formData.fields.add(MapEntry('email', email.trim()));
         formData.fields.add(MapEntry('password', password));
         formData.fields.add(MapEntry('name', name.trim()));
+        formData.fields.add(MapEntry('role', role.trim()));
 
         // Add image file
         final file = File(imagePath);
@@ -105,6 +108,7 @@ class ApiService {
             'email': email.trim(),
             'password': password,
             'name': name.trim(),
+            'role': role.trim(),
           },
           options: Options(contentType: 'application/json'),
         );

@@ -306,6 +306,8 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
   }
 
   Widget _buildOptionsSection(int questionIndex) {
+    final optionCount = _optionControllersList[questionIndex].length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -320,31 +322,23 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
                 color: Color(0xFF1E293B),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF667EEA).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+            IconButton(
+              onPressed: optionCount >= 4
+                  ? null
+                  : () {
+                      setState(() {
+                        _optionControllersList[questionIndex].add(
+                          TextEditingController(),
+                        );
+                      });
+                    },
+              icon: Icon(
+                Icons.add_rounded,
+                color: optionCount >= 4 ? Colors.grey : Color(0xFF667EEA),
               ),
-              child: IconButton(
-                onPressed: _optionControllersList[questionIndex].length >= 4
-                    ? null
-                    : () {
-                        setState(() {
-                          _optionControllersList[questionIndex].add(
-                            TextEditingController(),
-                          );
-                        });
-                      },
-                icon: Icon(
-                  Icons.add_rounded,
-                  color: _optionControllersList[questionIndex].length >= 4
-                      ? Colors.grey
-                      : const Color(0xFF667EEA),
-                ),
-                tooltip: _optionControllersList[questionIndex].length >= 4
-                    ? 'Maximum 4 options allowed'
-                    : 'Add Option',
-              ),
+              tooltip: optionCount >= 4
+                  ? 'Exactly 4 options required'
+                  : 'Add Option',
             ),
           ],
         ),
@@ -353,6 +347,55 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
       ],
     );
   }
+
+  // Widget _buildOptionsSection(int questionIndex) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //         children: [
+  //           const Text(
+  //             'Answer Options',
+  //             style: TextStyle(
+  //               fontSize: 14,
+  //               fontWeight: FontWeight.w600,
+  //               color: Color(0xFF1E293B),
+  //             ),
+  //           ),
+  //           Container(
+  //             decoration: BoxDecoration(
+  //               color: const Color(0xFF667EEA).withOpacity(0.1),
+  //               borderRadius: BorderRadius.circular(8),
+  //             ),
+  //             child: IconButton(
+  //               onPressed: _optionControllersList[questionIndex].length >= 4
+  //                   ? null
+  //                   : () {
+  //                       setState(() {
+  //                         _optionControllersList[questionIndex].add(
+  //                           TextEditingController(),
+  //                         );
+  //                       });
+  //                     },
+  //               icon: Icon(
+  //                 Icons.add_rounded,
+  //                 color: _optionControllersList[questionIndex].length >= 4
+  //                     ? Colors.grey
+  //                     : const Color(0xFF667EEA),
+  //               ),
+  //               tooltip: _optionControllersList[questionIndex].length >= 4
+  //                   ? 'Maximum 4 options allowed'
+  //                   : 'Add Option',
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //       const SizedBox(height: 16),
+  //       _buildOptionsList(questionIndex),
+  //     ],
+  //   );
+  // }
 
   Widget _buildOptionsList(int questionIndex) {
     final optionControllers = _optionControllersList[questionIndex];
@@ -604,11 +647,6 @@ class _AddEditTestQuestionScreenState extends State<AddEditTestQuestionScreen> {
           'All questions must have at least one option';
       return;
     }
-
-    // if (controller.selectedCorrectAnswer.value < 0) {
-    //   controller.errorMessage.value = 'Please select a correct answer';
-    //   return;
-    // }
 
     if (controller.selectedCorrectAnswers.isEmpty ||
         controller.selectedCorrectAnswers.any((i) => i < 0)) {
