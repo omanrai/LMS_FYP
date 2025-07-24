@@ -5,6 +5,7 @@ import '../controller/auth/login_controller.dart';
 import '../model/auth/user_model.dart';
 import 'auth/login_screen.dart';
 import 'courses/get_course.dart';
+import 'teacher/teacher_course.dart';
 
 // Main Screen with Bottom Navigation
 class MainScreen extends StatefulWidget {
@@ -50,7 +51,6 @@ class _MainScreenState extends State<MainScreen> {
     return Obx(() {
       final user = loginController.user.value;
       final roleColor = getRoleColor(user);
-
       return Scaffold(
         appBar: AppBar(
           backgroundColor: roleColor,
@@ -189,16 +189,6 @@ class _MainScreenState extends State<MainScreen> {
     return Column(
       children: [
         _buildDashboardCard(
-          icon: Icons.book,
-          title: 'Enrollment',
-          subtitle: 'Manage your student enrollment',
-          color: Colors.green,
-          onTap: () {
-            Get.to(() => CourseScreen());
-          },
-        ),
-        SizedBox(height: 16),
-        _buildDashboardCard(
           icon: Icons.library_add_check,
           title: 'My Courses',
           subtitle: 'Manage your Courses',
@@ -207,7 +197,16 @@ class _MainScreenState extends State<MainScreen> {
             Get.to(() => CourseScreen());
           },
         ),
-        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.book,
+          title: 'Enrollment',
+          subtitle: 'Manage your student enrollment',
+          color: Colors.amber,
+          onTap: () {
+            Get.to(() => TeacherCourseScreen());
+          },
+        ),
+
         // _buildDashboardCard(
         //   icon: Icons.fact_check,
         //   title: 'Test Question',
@@ -218,12 +217,6 @@ class _MainScreenState extends State<MainScreen> {
         //   },
         // ),
         // SizedBox(height: 16),
-        _buildDashboardCard(
-          icon: Icons.class_,
-          title: 'My Classes',
-          subtitle: 'Manage your classes',
-          color: Colors.amber,
-        ),
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.people,

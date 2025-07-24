@@ -174,19 +174,28 @@ class EnrollmentApiService {
           // Check if response.data is a List directly
           if (response.data is List) {
             enrollments = (response.data as List)
-                .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                .map(
+                  (enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson),
+                )
                 .toList();
           }
           // Or if it's wrapped in an object
           else if (response.data is Map<String, dynamic>) {
             final data = response.data as Map<String, dynamic>;
-            if (data.containsKey('enrollments') && data['enrollments'] is List) {
+            if (data.containsKey('enrollments') &&
+                data['enrollments'] is List) {
               enrollments = (data['enrollments'] as List)
-                  .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                  .map(
+                    (enrollmentJson) =>
+                        EnrollmentModel.fromJson(enrollmentJson),
+                  )
                   .toList();
             } else if (data.containsKey('data') && data['data'] is List) {
               enrollments = (data['data'] as List)
-                  .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                  .map(
+                    (enrollmentJson) =>
+                        EnrollmentModel.fromJson(enrollmentJson),
+                  )
                   .toList();
             }
           }
@@ -203,7 +212,8 @@ class EnrollmentApiService {
           log('Error parsing course enrollments: $parseError');
           return ApiResponse<List<EnrollmentModel>>(
             success: false,
-            message: 'Failed to parse enrollment data: ${parseError.toString()}',
+            message:
+                'Failed to parse enrollment data: ${parseError.toString()}',
             statusCode: response.statusCode,
           );
         }
@@ -254,19 +264,28 @@ class EnrollmentApiService {
           // Check if response.data is a List directly
           if (response.data is List) {
             enrollments = (response.data as List)
-                .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                .map(
+                  (enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson),
+                )
                 .toList();
           }
           // Or if it's wrapped in an object
           else if (response.data is Map<String, dynamic>) {
             final data = response.data as Map<String, dynamic>;
-            if (data.containsKey('enrollments') && data['enrollments'] is List) {
+            if (data.containsKey('enrollments') &&
+                data['enrollments'] is List) {
               enrollments = (data['enrollments'] as List)
-                  .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                  .map(
+                    (enrollmentJson) =>
+                        EnrollmentModel.fromJson(enrollmentJson),
+                  )
                   .toList();
             } else if (data.containsKey('data') && data['data'] is List) {
               enrollments = (data['data'] as List)
-                  .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                  .map(
+                    (enrollmentJson) =>
+                        EnrollmentModel.fromJson(enrollmentJson),
+                  )
                   .toList();
             }
           }
@@ -283,7 +302,8 @@ class EnrollmentApiService {
           log('Error parsing my enrollments: $parseError');
           return ApiResponse<List<EnrollmentModel>>(
             success: false,
-            message: 'Failed to parse enrollment data: ${parseError.toString()}',
+            message:
+                'Failed to parse enrollment data: ${parseError.toString()}',
             statusCode: response.statusCode,
           );
         }
@@ -369,7 +389,8 @@ class EnrollmentApiService {
           log('Error parsing enrollment: $parseError');
           return ApiResponse<EnrollmentModel>(
             success: false,
-            message: 'Failed to parse enrollment data: ${parseError.toString()}',
+            message:
+                'Failed to parse enrollment data: ${parseError.toString()}',
             statusCode: response.statusCode,
           );
         }
@@ -533,7 +554,7 @@ class EnrollmentApiService {
     }
   }
 
-  // Approve or reject an enrollment (admin only)
+  // Approve or reject an enrollment
   static Future<ApiResponse<EnrollmentModel>> updateEnrollmentStatus(
     String enrollmentId,
     String status, // 'approved', 'rejected', 'pending'
@@ -560,9 +581,15 @@ class EnrollmentApiService {
         );
       }
 
+      // final response = await _dio.put(
+      //   '$enrollmentEndpoint/$enrollmentId/$status',
+      //   data: {'status': status},
+      //   options: Options(contentType: 'application/json'),
+      // );
+
       final response = await _dio.put(
         '$enrollmentEndpoint/$enrollmentId/status',
-        data: {'status': status},
+        queryParameters: {'status': status},
         options: Options(contentType: 'application/json'),
       );
 
@@ -678,7 +705,8 @@ class EnrollmentApiService {
           log('Error parsing enrollment count: $parseError');
           return ApiResponse<int>(
             success: false,
-            message: 'Failed to parse enrollment count: ${parseError.toString()}',
+            message:
+                'Failed to parse enrollment count: ${parseError.toString()}',
             statusCode: response.statusCode,
           );
         }
@@ -699,7 +727,9 @@ class EnrollmentApiService {
   }
 
   // Find all enrollments for teacher (teacher can approve/disapprove and delete)
-  static Future<ApiResponse<List<EnrollmentModel>>> getEnrollmentsForTeacher() async {
+  static Future<ApiResponse<List<EnrollmentModel>>> getEnrollmentsForTeacher(
+    String? status,
+  ) async {
     try {
       log('Fetching enrollments for teacher...');
 
@@ -718,6 +748,7 @@ class EnrollmentApiService {
         '$enrollmentEndpoint/enrollments-for-teacher',
         options: Options(contentType: 'application/json'),
       );
+      // }
 
       log('Teacher enrollments response: ${response.data}');
 
@@ -729,19 +760,28 @@ class EnrollmentApiService {
           // Check if response.data is a List directly
           if (response.data is List) {
             enrollments = (response.data as List)
-                .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                .map(
+                  (enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson),
+                )
                 .toList();
           }
           // Or if it's wrapped in an object
           else if (response.data is Map<String, dynamic>) {
             final data = response.data as Map<String, dynamic>;
-            if (data.containsKey('enrollments') && data['enrollments'] is List) {
+            if (data.containsKey('enrollments') &&
+                data['enrollments'] is List) {
               enrollments = (data['enrollments'] as List)
-                  .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                  .map(
+                    (enrollmentJson) =>
+                        EnrollmentModel.fromJson(enrollmentJson),
+                  )
                   .toList();
             } else if (data.containsKey('data') && data['data'] is List) {
               enrollments = (data['data'] as List)
-                  .map((enrollmentJson) => EnrollmentModel.fromJson(enrollmentJson))
+                  .map(
+                    (enrollmentJson) =>
+                        EnrollmentModel.fromJson(enrollmentJson),
+                  )
                   .toList();
             }
           }
@@ -758,7 +798,8 @@ class EnrollmentApiService {
           log('Error parsing teacher enrollments: $parseError');
           return ApiResponse<List<EnrollmentModel>>(
             success: false,
-            message: 'Failed to parse enrollment data: ${parseError.toString()}',
+            message:
+                'Failed to parse enrollment data: ${parseError.toString()}',
             statusCode: response.statusCode,
           );
         }

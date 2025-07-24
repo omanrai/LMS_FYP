@@ -91,10 +91,10 @@ class LoginController extends GetxController {
           duration: const Duration(seconds: 3),
         );
 
-        Future.delayed(const Duration(seconds: 3), () {
+     
           // Navigate based on role
           Get.offAll(() => MainScreen());
-        });
+     
       } else {
         Get.snackbar(
           'Error',

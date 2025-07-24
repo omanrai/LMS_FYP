@@ -258,14 +258,17 @@ class EnrollmentController extends GetxController {
   }
 
   // Get enrollments for teacher
-  Future<void> getEnrollmentsForTeacher({bool showSnackbar = false}) async {
+  Future<void> getEnrollmentsForTeacher({String? status,bool showSnackbar = false}) async {
+    EnrollmentStatus? status;
     try {
       _isLoadingTeacherEnrollments.value = true;
       clearError();
 
       log('Fetching teacher enrollments');
 
-      final response = await EnrollmentApiService.getEnrollmentsForTeacher();
+      final response = await EnrollmentApiService.getEnrollmentsForTeacher(
+        status.toString(),
+      );
 
       if (response.success && response.data != null) {
         _teacherEnrollments.assignAll(response.data!);

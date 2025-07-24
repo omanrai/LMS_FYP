@@ -215,102 +215,129 @@ class _CourseScreenState extends State<CourseScreen> {
 
   Widget _buildHeader() {
     return Container(
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Gradient Icon Badge
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF6366F1), Color(0xFF9333EA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.school, color: Colors.white, size: 24),
+            child: const Icon(Icons.school, color: Colors.white, size: 28),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isTeacher ? 'My Courses' : 'Available Courses',
+                  isTeacher ? 'My Courses' : 'Explore Courses',
                   style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   isTeacher
-                      ? 'Manage your learning journey'
-                      : 'Explore courses to learn',
+                      ? 'Track, manage and update your course list.'
+                      : 'Find the right course to boost your knowledge.',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xFF6B7280),
                   ),
                 ),
+                const SizedBox(height: 12),
+
+                // Status filter (for students only)
                 if (!isTeacher)
-                  DropdownButton<String>(
-                    value: selectedStatus,
-                    hint: const Text('Enrollment Status'),
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: null,
-                        child: const Text('All Status'),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F4F6),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
                       ),
-                      const DropdownMenuItem<String>(
-                        value: 'approved',
-                        child: Text('Approved'),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedStatus,
+                          hint: const Text('Filter by status'),
+                          items: [
+                            const DropdownMenuItem<String>(
+                              value: null,
+                              child: Text('All Status'),
+                            ),
+                            const DropdownMenuItem<String>(
+                              value: 'approved',
+                              child: Text('Approved'),
+                            ),
+                            const DropdownMenuItem<String>(
+                              value: 'pending',
+                              child: Text('Pending'),
+                            ),
+                            const DropdownMenuItem<String>(
+                              value: 'rejected',
+                              child: Text('Rejected'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              selectedStatus = value;
+                              // Trigger API call or state update here
+                            });
+                          },
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF111827),
+                          ),
+                          icon: const Icon(Icons.arrow_drop_down),
+                          dropdownColor: Colors.white,
+                        ),
                       ),
-                      const DropdownMenuItem<String>(
-                        value: 'pending',
-                        child: Text('Pending'),
-                      ),
-                      const DropdownMenuItem<String>(
-                        value: 'rejected',
-                        child: Text('Rejected'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedStatus = value;
-                      });
-                    },
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF111827),
                     ),
-                    dropdownColor: Colors.white,
-                    isExpanded: false,
                   ),
               ],
             ),
           ),
-          // Only show Add Course button for teachers
+
+          // Add Course Button (for teachers only)
           if (isTeacher)
             ElevatedButton.icon(
               onPressed: () {
                 Get.to(() => AddEditCourseScreen(isEditMode: false));
               },
               icon: const Icon(Icons.add, size: 20),
-              label: const Text('Add Course'),
+              label: const Text('New Course'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6366F1),
                 foregroundColor: Colors.white,
-                elevation: 3,
-                shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -583,13 +610,11 @@ class _CourseScreenState extends State<CourseScreen> {
     final enrollment = !isTeacher
         ? enrollmentController.getEnrollmentForCourse(course.id)
         : null;
-
     return GestureDetector(
       onTap: () {
         if (isTeacher) {
           Get.to(() => ViewCourseScreen(course: course));
-        } else if (enrollmentController.myEnrollments.first.status ==
-            "approved") {
+        } else if (enrollment?.status == "approved") {
           Get.to(
             () => ViewCourseScreen(
               course: course,
@@ -647,7 +672,7 @@ class _CourseScreenState extends State<CourseScreen> {
                       ),
                     ),
                   ),
-                  // Add key icon for non-teachers when status is not approved
+                  // Add lock icon for non-teachers when status is not approved
                   if (!isTeacher && enrollment?.status != 'approved')
                     Positioned(
                       top: 25,
@@ -818,7 +843,6 @@ class _CourseScreenState extends State<CourseScreen> {
                               ),
                             ),
                           ),
-
                         if (!isTeacher && enrollment == null)
                           GestureDetector(
                             onTap: () {
