@@ -96,7 +96,7 @@ class RegistrationController extends GetxController {
       Get.snackbar(
         'Validation Error',
         'Please select a role (Student or Teacher)',
-        snackPosition: SnackPosition.TOP,
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.orange,
         colorText: Colors.white,
         duration: const Duration(seconds: 3),

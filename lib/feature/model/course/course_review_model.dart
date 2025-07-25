@@ -1,31 +1,27 @@
 import '../auth/user_model.dart';
 import 'course_model.dart';
 
-class CourseRemark {
+class CourseRemarkModel {
   final CourseModel course;
   final UserModel user;
   final int rating;
   final String comment;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final int version;
 
-  CourseRemark({
+  CourseRemarkModel({
     required this.course,
     required this.user,
     required this.rating,
     required this.comment,
     required this.createdAt,
     required this.updatedAt,
-    required this.version,
   });
 
   // Factory constructor to create CourseRemark from JSON
-  factory CourseRemark.fromJson(Map<String, dynamic> json) {
-    return CourseRemark(
-      course: CourseModelExtension.fromCourseRemarkJson(
-        json['course'] as Map<String, dynamic>,
-      ),
+  factory CourseRemarkModel.fromJson(Map<String, dynamic> json) {
+    return CourseRemarkModel(
+      course: CourseModelExtension.fromCourseRemarkJson(json['course']),
 
       user: UserModelExtension.fromCourseRemarkJson(
         json['user'] as Map<String, dynamic>,
@@ -34,7 +30,6 @@ class CourseRemark {
       comment: json['comment'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      version: json['__v'] as int,
     );
   }
 
@@ -47,12 +42,11 @@ class CourseRemark {
       'comment': comment,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
-      '__v': version,
     };
   }
 
   // Method to create a copy with modified fields
-  CourseRemark copyWith({
+  CourseRemarkModel copyWith({
     CourseModel? course,
     UserModel? user,
     int? rating,
@@ -61,14 +55,13 @@ class CourseRemark {
     DateTime? updatedAt,
     int? version,
   }) {
-    return CourseRemark(
+    return CourseRemarkModel(
       course: course ?? this.course,
       user: user ?? this.user,
       rating: rating ?? this.rating,
       comment: comment ?? this.comment,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      version: version ?? this.version,
     );
   }
 
@@ -104,19 +97,36 @@ extension UserModelExtension on UserModel {
 }
 
 extension CourseModelExtension on CourseModel {
-  // Create a minimal CourseModel from CourseRemark user data
-  static CourseModel fromCourseRemarkJson(Map<String, dynamic> userJson) {
-    return CourseModel(
-      id: userJson['_id'] ?? '',
-      title: userJson['title'] ?? '',
-      description: '',
-      coverImage: '',
-      lessons: [],
-      lessonIds: [],
-      teacherId: '',
-      reviewIds: [],
-      version: 0,
-    );
+  static CourseModel fromCourseRemarkJson(dynamic courseJson) {
+    if (courseJson is String) {
+      // Only ID was provided
+      return CourseModel(
+        id: courseJson,
+        title: '',
+        description: '',
+        coverImage: '',
+        lessons: [],
+        lessonIds: [],
+        teacherId: '',
+        reviewIds: [],
+        version: 0,
+      );
+    } else if (courseJson is Map<String, dynamic>) {
+      // Full object
+      return CourseModel(
+        id: courseJson['_id'] ?? '',
+        title: courseJson['title'] ?? '',
+        description: '',
+        coverImage: '',
+        lessons: [],
+        lessonIds: [],
+        teacherId: '',
+        reviewIds: [],
+        version: 0,
+      );
+    } else {
+      throw Exception('Invalid course data in CourseRemark JSON');
+    }
   }
 }
 
@@ -125,13 +135,15 @@ extension CourseModelExtension on CourseModel {
 
 // Helper class for parsing list of CourseRemarks
 class CourseRemarkList {
-  static List<CourseRemark> fromJsonList(List<dynamic> jsonList) {
+  static List<CourseRemarkModel> fromJsonList(List<dynamic> jsonList) {
     return jsonList
-        .map((json) => CourseRemark.fromJson(json as Map<String, dynamic>))
+        .map((json) => CourseRemarkModel.fromJson(json as Map<String, dynamic>))
         .toList();
   }
 
-  static List<Map<String, dynamic>> toJsonList(List<CourseRemark> remarks) {
+  static List<Map<String, dynamic>> toJsonList(
+    List<CourseRemarkModel> remarks,
+  ) {
     return remarks.map((remark) => remark.toJson()).toList();
   }
 }

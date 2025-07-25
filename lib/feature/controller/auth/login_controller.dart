@@ -85,16 +85,14 @@ class LoginController extends GetxController {
         Get.snackbar(
           'Success',
           "Login successful",
-          snackPosition: SnackPosition.TOP,
+          snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
 
-     
-          // Navigate based on role
-          Get.offAll(() => MainScreen());
-     
+        // Navigate based on role
+        Get.offAll(() => MainScreen());
       } else {
         Get.snackbar(
           'Error',

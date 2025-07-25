@@ -1,20 +1,19 @@
 import 'dart:developer';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_fyp/feature/model/course/enrollment_model.dart';
+import 'package:flutter_fyp/feature/model/course/extension.dart';
 import 'package:flutter_fyp/feature/screen/courses/test%20question/lesson_test_question.dart';
 import 'package:get/get.dart';
+import '../../../core/helpers/format_data.dart';
 import '../../../core/utility/dialog_utils.dart';
-import '../../controller/auth/login_controller.dart';
 import '../../controller/course/course_lesson_controller.dart';
+import '../../controller/course/course_review_controller.dart';
 import '../../model/course/course_lesson_model.dart';
 import '../../model/course/course_model.dart';
+import '../../model/course/course_review_model.dart';
 import 'lesson/add_edit_lesson.dart';
 
 class ViewCourseScreen extends StatefulWidget {
   final CourseModel course;
-
   const ViewCourseScreen({Key? key, required this.course}) : super(key: key);
 
   @override
@@ -27,7 +26,9 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
   final CourseLessonController courseLessonController = Get.put(
     CourseLessonController(),
   );
-  late final LoginController loginController;
+  final CourseReviewController courseReviewController = Get.put(
+    CourseReviewController(),
+  );
 
   @override
   void initState() {
@@ -35,22 +36,13 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     _tabController = TabController(length: 3, vsync: this);
     courseLessonController.setCurrentCourseId(widget.course.id);
     courseLessonController.fetchCourseLessons();
-    try {
-      loginController = Get.find<LoginController>();
-    } catch (e) {
-      loginController = Get.put(LoginController());
-    }
+    courseReviewController.getReviewsForCourse(widget.course.id);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  bool get isTeacher {
-    final user = loginController.user.value;
-    return user?.role.toLowerCase() == 'teacher';
   }
 
   @override
@@ -266,7 +258,9 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         _buildStatItem(
           icon: Icons.star_outline,
           label: 'Rating',
-          value: '4.8',
+          value: courseReviewController.courseReviews.ratingAverage
+              .toStringAsFixed(2),
+
           color: const Color(0xFFF59E0B),
         ),
         _buildStatItem(
@@ -994,7 +988,320 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         children: [
           _buildSectionHeader('Student Reviews'),
           const SizedBox(height: 16),
-          _buildEmptyReviewsState(),
+
+          // Review Statistics
+          _buildReviewStats(),
+          const SizedBox(height: 20),
+
+          // Reviews List
+          Obx(() {
+            if (courseReviewController.isLoading) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40.0),
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF6366F1),
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            final reviews = courseReviewController.courseReviews;
+
+            if (reviews.isEmpty) {
+              return _buildEmptyReviewsState();
+            } else {
+              return _buildReviewsList(reviews);
+            }
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewStats() {
+    return Obx(() {
+      final reviews = courseReviewController.courseReviews;
+
+      if (reviews.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      // Calculate average rating
+      final averageRating =
+          reviews.fold<double>(0.0, (sum, review) => sum + review.rating) /
+          reviews.length;
+
+      // Calculate rating distribution
+      final ratingCounts = <int, int>{};
+      for (int i = 1; i <= 5; i++) {
+        ratingCounts[i] = reviews.where((r) => r.rating == i).length;
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                // Overall Rating
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: [
+                      Text(
+                        averageRating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          return Icon(
+                            index < averageRating.floor()
+                                ? Icons.star
+                                : index < averageRating
+                                ? Icons.star_half
+                                : Icons.star_border,
+                            color: const Color(0xFFF59E0B),
+                            size: 20,
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${reviews.length} review${reviews.length != 1 ? 's' : ''}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Rating Distribution
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    children: List.generate(5, (index) {
+                      final starCount = 5 - index;
+                      final count = ratingCounts[starCount] ?? 0;
+                      final percentage = reviews.isNotEmpty
+                          ? count / reviews.length
+                          : 0.0;
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            Text(
+                              '$starCount',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.star,
+                              size: 12,
+                              color: Color(0xFFF59E0B),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: FractionallySizedBox(
+                                  alignment: Alignment.centerLeft,
+                                  widthFactor: percentage,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF59E0B),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$count',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildReviewsList(List<CourseRemarkModel> reviews) {
+    return Column(
+      children: reviews.map((review) => _buildReviewItem(review)).toList(),
+    );
+  }
+
+  Widget _buildReviewItem(CourseRemarkModel review) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF3F4F6), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with user info and rating
+          Row(
+            children: [
+              // User Avatar
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Center(
+                  child: Text(
+                    review.user.name.isNotEmpty
+                        ? review.user.name[0].toUpperCase()
+                        : 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review.user.name.isNotEmpty
+                          ? review.user.name
+                          : 'Anonymous User',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        // Star Rating
+                        Row(
+                          children: List.generate(5, (index) {
+                            return Icon(
+                              index < review.rating
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: const Color(0xFFF59E0B),
+                              size: 16,
+                            );
+                          }),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          formatDate(review.createdAt),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Review Comment
+          if (review.comment.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                review.comment,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF374151),
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+
+          // Updated timestamp (if different from created)
+          if (review.updatedAt.isAfter(review.createdAt)) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Updated ${formatDate(review.updatedAt)}',
+              style: TextStyle(
+                fontSize: 11,
+                color: const Color(0xFF6B7280).withValues(alpha: 0.8),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
     );
