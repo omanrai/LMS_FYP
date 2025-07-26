@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../controller/auth/login_controller.dart';
 import '../model/auth/user_model.dart';
 import 'auth/login_screen.dart';
+import 'auth/update_profile.dart';
 import 'courses/get_course.dart';
 import 'teacher/teacher_course.dart';
 
@@ -167,13 +168,13 @@ class _MainScreenState extends State<MainScreen> {
           color: Colors.blue,
           onTap: () => Get.to(() => CourseScreen()),
         ),
-        SizedBox(height: 16),
-        _buildDashboardCard(
-          icon: Icons.assignment,
-          title: 'Assignments',
-          subtitle: 'Check pending assignments',
-          color: Colors.orange,
-        ),
+        // SizedBox(height: 16),
+        // _buildDashboardCard(
+        //   icon: Icons.assignment,
+        //   title: 'Assignments',
+        //   subtitle: 'Check pending assignments',
+        //   color: Colors.orange,
+        // ),
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.grade,
@@ -431,11 +432,16 @@ class _MainScreenState extends State<MainScreen> {
           if (isLogout) {
             _showLogoutDialog();
           } else {
-            Get.snackbar(
-              'Info',
-              'Navigate to $title settings',
-              snackPosition: SnackPosition.BOTTOM,
-            );
+            if (title == 'Profile') {
+              Get.to(() => ProfileScreen());
+            } else {
+              // Handle other settings navigation
+              Get.snackbar(
+                'Info',
+                'Navigate to $title settings',
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            }
           }
         },
       ),
@@ -482,7 +488,7 @@ class _MainScreenState extends State<MainScreen> {
             title: Text('Profile'),
             onTap: () {
               Navigator.pop(context);
-              Get.snackbar('Info', 'Navigate to Profile');
+              Get.to(() => ProfileScreen());
             },
           ),
           ListTile(

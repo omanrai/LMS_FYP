@@ -618,7 +618,7 @@ class _CourseScreenState extends State<CourseScreen> {
           Get.to(
             () => ViewCourseScreen(
               course: course,
-              // status: enrollment?.status,
+              enrollment: enrollment,
               // enroll: enrollment,
             ),
           );
@@ -661,7 +661,7 @@ class _CourseScreenState extends State<CourseScreen> {
                         topRight: Radius.circular(16),
                       ),
                       child: Image.network(
-                        '$BASE_API${course.coverImage}',
+                        '${course.coverImage}',
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(

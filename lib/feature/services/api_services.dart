@@ -9,30 +9,33 @@ import '../model/api_response_model.dart';
 class ApiService {
   static const String registerEndpoint = '/authentication/register';
   static const String loginEndpoint = '/authentication/login';
+  static const String updateProfileEndpoint = '/authentication/me';
   static const Duration timeoutDuration = Duration(seconds: 30);
 
-  static late Dio _dio;
+  static Dio? _dio;
 
   // Initialize Dio instance
   static void _initializeDio() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: BASE_API,
-        connectTimeout: timeoutDuration,
-        receiveTimeout: timeoutDuration,
-        sendTimeout: timeoutDuration,
-        headers: {'Accept': 'application/json'},
-      ),
-    );
+    if (_dio == null) {
+      _dio = Dio(
+        BaseOptions(
+          baseUrl: BASE_API,
+          connectTimeout: timeoutDuration,
+          receiveTimeout: timeoutDuration,
+          sendTimeout: timeoutDuration,
+          headers: {'Accept': 'application/json'},
+        ),
+      );
 
-    // Add interceptors for logging (optional)
-    _dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (obj) => print(obj),
-      ),
-    );
+      // Add interceptors for logging (optional)
+      _dio!.interceptors.add(
+        LogInterceptor(
+          requestBody: true,
+          responseBody: true,
+          logPrint: (obj) => print(obj),
+        ),
+      );
+    }
   }
 
   static Future<ApiResponse<Map<String, dynamic>>> registerUser(
@@ -99,10 +102,10 @@ class ApiService {
         );
 
         // Send request with FormData (multipart)
-        response = await _dio.post(registerEndpoint, data: formData);
+        response = await _dio!.post(registerEndpoint, data: formData);
       } else {
         // Send request with JSON data only (no image)
-        response = await _dio.post(
+        response = await _dio!.post(
           registerEndpoint,
           data: {
             'email': email.trim(),
@@ -143,7 +146,7 @@ class ApiService {
       // Initialize Dio if not already done
       _initializeDio();
 
-      final response = await _dio.post(
+      final response = await _dio!.post(
         loginEndpoint,
         data: {'email': email, 'password': password},
         options: Options(contentType: 'application/json'),
@@ -156,6 +159,85 @@ class ApiService {
       return ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'An unexpected error occurred at Login: ${e.toString()}',
+      );
+    }
+  }
+
+  static Future<ApiResponse<Map<String, dynamic>>> updateUserProfile(
+    String name, {
+    String? imagePath, // Optional profile image
+  }) async {
+    try {
+      // Check internet connection
+      if (!await ConnectivityService.hasInternetConnection()) {
+        return ApiResponse<Map<String, dynamic>>(
+          success: false,
+          message: 'No internet connection. Please check your network.',
+        );
+      }
+
+      // Initialize Dio if not already done
+      _initializeDio();
+
+      // Debug print the values
+      log('Debug - Update Profile Name: $name');
+      log(
+        'Debug - Update Profile Image path: ${imagePath ?? "No image provided"}',
+      );
+
+      if (name.isEmpty) {
+        return ApiResponse<Map<String, dynamic>>(
+          success: false,
+          message: 'Name cannot be empty.',
+        );
+      }
+
+      // Check if image is provided and exists
+      bool hasImage =
+          imagePath != null &&
+          imagePath.isNotEmpty &&
+          File(imagePath).existsSync();
+
+      Response response;
+
+      if (hasImage) {
+        // Create FormData for request with image
+        FormData formData = FormData();
+
+        // Add name field
+        formData.fields.add(MapEntry('name', name.trim()));
+
+        // Add image file
+        final file = File(imagePath);
+        formData.files.add(
+          MapEntry(
+            'file',
+            await MultipartFile.fromFile(
+              file.path,
+              filename: file.path.split('/').last,
+            ),
+          ),
+        );
+
+        // Send PUT request with FormData (multipart)
+        response = await _dio!.put(updateProfileEndpoint, data: formData);
+      } else {
+        // Send PUT request with JSON data only (no image)
+        response = await _dio!.put(
+          updateProfileEndpoint,
+          data: {'name': name.trim()},
+          options: Options(contentType: 'application/json'),
+        );
+      }
+
+      return _handleResponse(response);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    } catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message:
+            'An unexpected error occurred at update profile: ${e.toString()}',
       );
     }
   }
@@ -273,11 +355,17 @@ class ApiService {
 
   // Optional: Method to configure custom headers (e.g., for authentication)
   static void setAuthToken(String token) {
-    _dio.options.headers['Authorization'] = 'Bearer $token';
+    log('Setting auth token: $token');
+    // Initialize Dio if not already done
+    _initializeDio();
+    _dio!.options.headers['Authorization'] = 'Bearer $token';
+    log('Authorization header set: ${_dio!.options.headers['Authorization']}');
   }
 
   // Optional: Method to clear auth token
   static void clearAuthToken() {
-    _dio.options.headers.remove('Authorization');
+    // Initialize Dio if not already done
+    _initializeDio();
+    _dio!.options.headers.remove('Authorization');
   }
 }

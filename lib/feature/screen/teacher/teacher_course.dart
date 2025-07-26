@@ -330,7 +330,7 @@ class _TeacherCourseScreenState extends State<TeacherCourseScreen> {
                 child: Container(
                   width: double.infinity,
                   child: Image.network(
-                    '$BASE_API${course.coverImage}',
+                    '${course.coverImage}',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Image.asset('assets/logo.png', fit: BoxFit.cover);
