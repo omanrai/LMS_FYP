@@ -329,7 +329,7 @@ class CourseReviewService {
       final response = await _dio.post(
         courseReviewEndpoint,
         data: {
-          'courseId': courseId.trim(),
+          'course': courseId.trim(),
           'rating': rating,
           'comment': comment.trim(),
         },
@@ -395,8 +395,11 @@ class CourseReviewService {
   // Update an existing review
   static Future<ApiResponse<CourseRemarkModel>> updateReview(
     String reviewId,
+    String courseId,
+    String userId,
     int rating,
     String comment,
+    bool isApproved,
   ) async {
     try {
       log('Updating review: $reviewId');
@@ -430,7 +433,7 @@ class CourseReviewService {
 
       final response = await _dio.put(
         '$courseReviewEndpoint/$reviewId',
-        data: {'rating': rating, 'comment': comment.trim()},
+        data: {'course': courseId,'user': userId,'rating': rating, 'comment': comment.trim(), 'isApproved': isApproved},
         options: Options(contentType: 'application/json'),
       );
 

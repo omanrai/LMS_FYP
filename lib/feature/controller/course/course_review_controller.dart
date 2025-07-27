@@ -3,6 +3,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fyp/core/utility/clear_focus.dart';
 import 'package:get/get.dart';
 import '../../model/api_response_model.dart';
 import '../../model/course/course_review_model.dart';
@@ -73,6 +74,7 @@ class CourseReviewController extends GetxController {
       clearForm();
     }
   }
+
   // Get reviews for a specific course
   Future<void> getReviewsForCourse(
     String courseId, {
@@ -121,8 +123,6 @@ class CourseReviewController extends GetxController {
       if (showLoading) _isLoading.value = false;
     }
   }
-
-
 
   // Get all reviews
   Future<void> getAllReviews({bool showLoading = true}) async {
@@ -179,7 +179,6 @@ class CourseReviewController extends GetxController {
     }
   }
 
-
   // Get a specific review by ID
   Future<void> getReviewById(String reviewId, {bool showLoading = true}) async {
     try {
@@ -226,6 +225,8 @@ class CourseReviewController extends GetxController {
 
   // Create a new review
   Future<bool> createReview(String courseId) async {
+    ClearFocus.clearAllFocus(Get.context!);
+
     try {
       _isCreating.value = true;
       clearError();
@@ -308,7 +309,13 @@ class CourseReviewController extends GetxController {
   }
 
   // Update an existing review
-  Future<bool> updateReview(String reviewId) async {
+  Future<bool> updateReview(
+    String reviewId,
+    String courseId,
+    String userId,
+    bool isApproved,
+  ) async {
+    ClearFocus.clearAllFocus(Get.context!);
     try {
       _isUpdating.value = true;
       clearError();
@@ -331,8 +338,11 @@ class CourseReviewController extends GetxController {
       final ApiResponse<CourseRemarkModel> response =
           await CourseReviewService.updateReview(
             reviewId,
+            courseId,
+            userId,
             selectedRating.value,
             commentController.text.trim(),
+            isApproved,
           );
 
       if (response.success && response.data != null) {
