@@ -1,12 +1,12 @@
-class CorseTestQuestion {
+class CourseTestQuestion {
   final String? id;
   final String question;
   final List<String> options;
 
-  CorseTestQuestion({this.id, required this.question, required this.options});
+  CourseTestQuestion({this.id, required this.question, required this.options});
 
-  factory CorseTestQuestion.fromJson(Map<String, dynamic> json) {
-    return CorseTestQuestion(
+  factory CourseTestQuestion.fromJson(Map<String, dynamic> json) {
+    return CourseTestQuestion(
       id: json['_id'] ?? json['id'],
       question: json['question'] ?? '',
       options: List<String>.from(json['options'] ?? []),
@@ -21,8 +21,12 @@ class CorseTestQuestion {
     };
   }
 
-  CorseTestQuestion copyWith({String? id, String? question, List<String>? options}) {
-    return CorseTestQuestion(
+  CourseTestQuestion copyWith({
+    String? id,
+    String? question,
+    List<String>? options,
+  }) {
+    return CourseTestQuestion(
       id: id ?? this.id,
       question: question ?? this.question,
       options: options ?? this.options,
@@ -37,7 +41,7 @@ class CorseTestQuestion {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is CorseTestQuestion &&
+    return other is CourseTestQuestion &&
         other.id == id &&
         other.question == question;
   }
@@ -50,16 +54,16 @@ class CorseTestQuestion {
 
 // Model for the complete test/quiz
 class CourseTestModel {
-  final String? id;
+  final String id;
   final String title;
   final String lessonId;
-  final List<CorseTestQuestion> questions;
+  final List<CourseTestQuestion> questions;
   final int correctAnswer;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   CourseTestModel({
-    this.id,
+    required this.id,
     required this.title,
     required this.lessonId,
     required this.questions,
@@ -79,7 +83,9 @@ class CourseTestModel {
           : json['lessonId'] ?? '',
       questions:
           (json['questions'] as List<dynamic>?)
-              ?.map((q) => CorseTestQuestion.fromJson(q as Map<String, dynamic>))
+              ?.map(
+                (q) => CourseTestQuestion.fromJson(q as Map<String, dynamic>),
+              )
               .toList() ??
           [],
       correctAnswer: json['correctAnswer'] ?? 0,
@@ -93,7 +99,7 @@ class CourseTestModel {
   }
   Map<String, dynamic> toJson() {
     return {
-      if (id != null) '_id': id,
+      '_id': id,
       'title': title,
       'lesson': lessonId,
       'questions': questions.map((q) => q.toJson()).toList(),
@@ -107,7 +113,7 @@ class CourseTestModel {
     String? id,
     String? title,
     String? lessonId,
-    List<CorseTestQuestion>? questions,
+    List<CourseTestQuestion>? questions,
     int? correctAnswer,
     DateTime? createdAt,
     DateTime? updatedAt,

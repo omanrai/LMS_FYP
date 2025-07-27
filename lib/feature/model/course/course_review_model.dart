@@ -103,6 +103,7 @@ extension UserModelExtension on UserModel {
       token: '',
       enrollments: [],
       notificationTokens: userJson['notification_tokens'] ?? [],
+      isSuspended: userJson['isSuspended'] ?? false,
 
     );
   }

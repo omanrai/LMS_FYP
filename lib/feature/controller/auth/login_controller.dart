@@ -108,6 +108,21 @@ class LoginController extends GetxController {
         // Parse user into UserModel
         user.value = UserModel.fromJson(response.data!);
 
+        // Check if user is suspended before proceeding
+        if (user.value!.isSuspended) {
+          Get.snackbar(
+            'Account Suspended',
+            'Your account has been suspended. Please contact support for assistance.',
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 5),
+          );
+          // Clear user data and don't proceed with login
+          user.value = null;
+          return;
+        }
+
         // Set the auth token for future API calls
         if (user.value!.token.isNotEmpty) {
           ApiService.setAuthToken(user.value!.token);
@@ -222,6 +237,7 @@ class LoginController extends GetxController {
               image: user.value!.image,
               enrollments: [], // Keep existing image unless updated
               notificationTokens: user.value!.notificationTokens,
+              isSuspended: user.value!.isSuspended,
             );
           }
 

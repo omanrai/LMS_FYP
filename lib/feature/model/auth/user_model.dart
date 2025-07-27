@@ -7,6 +7,9 @@ class UserModel {
   final String token;
   final List<dynamic> enrollments;
   final List<dynamic> notificationTokens;
+  final bool isSuspended;
+  final String? createdAt;
+  final String? updatedAt;
   final int? version; // For __v field
 
   UserModel({
@@ -18,6 +21,9 @@ class UserModel {
     required this.token,
     required this.enrollments,
     required this.notificationTokens,
+    required this.isSuspended,
+    this.createdAt,
+    this.updatedAt,
     this.version,
   });
 
@@ -32,6 +38,9 @@ class UserModel {
       token: json['accessToken'] ?? '',
       enrollments: userJson['enrollments'] ?? [],
       notificationTokens: userJson['notification_tokens'] ?? [],
+      isSuspended: userJson['isSuspended'] ?? false,
+      createdAt: userJson['createdAt'],
+      updatedAt: userJson['updatedAt'],
       version: userJson['__v'],
     );
   }
@@ -46,6 +55,9 @@ class UserModel {
         'role': role,
         'enrollments': enrollments,
         'notification_tokens': notificationTokens,
+        'isSuspended': isSuspended,
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
         '__v': version,
       },
       'accessToken': token,

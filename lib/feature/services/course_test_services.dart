@@ -9,7 +9,6 @@ import '../controller/auth/login_controller.dart';
 import '../model/api_response_model.dart';
 import '../model/course/course_test_model.dart';
 
-
 class CourseTestServices {
   static const String courseTestQuestionEndpoint = '/course-tests';
 
@@ -45,8 +44,9 @@ class CourseTestServices {
     );
   }
 
-  static Future<ApiResponse<List<CourseTestModel>>>
-  getTestQuestionList({required String courseId}) async {
+  static Future<ApiResponse<List<CourseTestModel>>> getTestQuestionList({
+    required String courseId,
+  }) async {
     try {
       log('Fetching test question list for course: $courseId');
 
@@ -84,10 +84,7 @@ class CourseTestServices {
           // Check if response.data is a List directly
           if (response.data is List) {
             testQuestions = (response.data as List)
-                .map(
-                  (questionJson) =>
-                      CourseTestModel.fromJson(questionJson),
-                )
+                .map((questionJson) => CourseTestModel.fromJson(questionJson))
                 .toList();
           }
           // Or if it's wrapped in an object like {questions: [...]} or {data: [...]}
@@ -95,17 +92,11 @@ class CourseTestServices {
             final data = response.data as Map<String, dynamic>;
             if (data.containsKey('questions') && data['questions'] is List) {
               testQuestions = (data['questions'] as List)
-                  .map(
-                    (questionJson) =>
-                        CourseTestModel.fromJson(questionJson),
-                  )
+                  .map((questionJson) => CourseTestModel.fromJson(questionJson))
                   .toList();
             } else if (data.containsKey('data') && data['data'] is List) {
               testQuestions = (data['data'] as List)
-                  .map(
-                    (questionJson) =>
-                        CourseTestModel.fromJson(questionJson),
-                  )
+                  .map((questionJson) => CourseTestModel.fromJson(questionJson))
                   .toList();
             }
           }
@@ -233,7 +224,7 @@ class CourseTestServices {
   static Future<ApiResponse<CourseTestModel>> createTestQuestion({
     required String courseId,
     required String title,
-    required List<CourseTestModel> questions,
+    required List<CourseTestQuestion> questions,
     required int correctAnswer,
   }) async {
     try {
@@ -254,7 +245,7 @@ class CourseTestServices {
       if (courseId.isEmpty || title.isEmpty || questions.isEmpty) {
         return ApiResponse<CourseTestModel>(
           success: false,
-          message: 'Course ID, title, and questions are required.',
+          message: 'course ID, title, and questions are required.',
         );
       }
 
@@ -354,7 +345,7 @@ class CourseTestServices {
       if (courseId.isEmpty || testId.isEmpty) {
         return ApiResponse<bool>(
           success: false,
-          message: 'Lesson ID and Test ID are required.',
+          message: 'course ID and Test ID are required.',
         );
       }
 

@@ -12,8 +12,8 @@ import '../../controller/course/enrollment_controller.dart';
 import '../../model/course/course_lesson_model.dart';
 import '../../model/course/course_model.dart';
 import '../../model/group chat/group_chat_model.dart';
-import 'lesson/add_edit_lesson.dart';
-import 'lesson/lesson_screen.dart';
+import 'course lesson/add_edit_lesson.dart';
+import 'course lesson/lesson_screen.dart';
 import 'review/review_tab.dart';
 
 class ViewCourseScreen extends StatefulWidget {

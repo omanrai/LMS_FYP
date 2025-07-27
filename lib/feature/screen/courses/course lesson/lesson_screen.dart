@@ -2,7 +2,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_fyp/feature/model/course/enrollment_model.dart';
-import 'package:flutter_fyp/feature/screen/courses/test%20question/lesson_test_question.dart';
+import 'package:flutter_fyp/feature/screen/courses/lesson%20test%20question/lesson_test_question.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/utility/dialog_utils.dart';
@@ -10,7 +10,7 @@ import '../../../controller/auth/login_controller.dart';
 import '../../../controller/course/course_lesson_controller.dart';
 import '../../../model/course/course_lesson_model.dart';
 import '../../../model/course/course_model.dart';
-import '../test question/quiz.dart';
+import '../lesson test question/quiz.dart';
 import 'add_edit_lesson.dart';
 
 class LessonsTabWidget extends StatefulWidget {

@@ -7,6 +7,7 @@ import '../model/auth/user_model.dart';
 import 'AI/chat_AI_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/update_profile.dart';
+import 'courses/course test/fetch_course.dart';
 import 'courses/get_course.dart';
 import 'courses/review/show_review.dart';
 import 'teacher/teacher_course.dart';
@@ -208,6 +209,14 @@ class _MainScreenState extends State<MainScreen> {
           color: Colors.deepOrange,
           onTap: () => Get.to(() => ChatWithAIScreen()),
         ),
+        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.quiz,
+          title: 'Course Test',
+          subtitle: 'Manage Course Test',
+          color: Colors.amber,
+          onTap: () => Get.to(() => FetchCourseScreen()),
+        ),
       ],
     );
   }
@@ -228,7 +237,7 @@ class _MainScreenState extends State<MainScreen> {
           icon: Icons.book,
           title: 'Enrollment',
           subtitle: 'Manage your student enrollment',
-          color: Colors.amber,
+          color: Colors.blue,
           onTap: () {
             Get.to(() => TeacherCourseScreen());
           },
@@ -244,13 +253,6 @@ class _MainScreenState extends State<MainScreen> {
         //   },
         // ),
         // SizedBox(height: 16),
-        SizedBox(height: 16),
-        _buildDashboardCard(
-          icon: Icons.people,
-          title: 'Students',
-          subtitle: 'View and manage students',
-          color: Colors.blue,
-        ),
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.reviews,
@@ -273,6 +275,14 @@ class _MainScreenState extends State<MainScreen> {
           subtitle: 'Get help with your studies from AI',
           color: Colors.deepOrange,
           onTap: () => Get.to(() => ChatWithAIScreen()),
+        ),
+        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.quiz,
+          title: 'Course Test',
+          subtitle: 'Manage Course Test',
+          color: Colors.amber,
+          onTap: () => Get.to(() => FetchCourseScreen()),
         ),
       ],
     );

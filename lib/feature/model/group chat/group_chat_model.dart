@@ -75,6 +75,7 @@ class GroupChatModel {
         token: '',
         enrollments: [],
         notificationTokens: [], // Not present in POST response
+        isSuspended: false, // Default value
       );
     } else if (json['user'] is Map<String, dynamic>) {
       // If user is a full object (from GET response), parse it
@@ -89,6 +90,7 @@ class GroupChatModel {
         enrollments: [], // Not present in API response
         notificationTokens:
             userJson['notification_tokens'] as List<dynamic>? ?? [],
+        isSuspended: userJson['isSuspended'] as bool? ?? false,
       );
     } else {
       // Fallback for null or unexpected types
@@ -100,6 +102,7 @@ class GroupChatModel {
         token: '',
         enrollments: [],
         notificationTokens: [], // Not present in POST response
+        isSuspended: false, // Default value
       );
     }
 
