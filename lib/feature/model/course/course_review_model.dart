@@ -102,6 +102,8 @@ extension UserModelExtension on UserModel {
       role: '',
       token: '',
       enrollments: [],
+      notificationTokens: userJson['notification_tokens'] ?? [],
+
     );
   }
 }

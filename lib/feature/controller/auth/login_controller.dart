@@ -222,6 +222,7 @@ class LoginController extends GetxController {
               token: user.value!.token,
               image: user.value!.image,
               enrollments: [], // Keep existing image unless updated
+              notificationTokens: user.value!.notificationTokens,
             );
           }
 

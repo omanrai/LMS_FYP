@@ -1,4 +1,3 @@
-
 import 'dart:developer';
 import '../auth/user_model.dart';
 import '../course/course_model.dart';
@@ -75,6 +74,7 @@ class GroupChatModel {
         role: '',
         token: '',
         enrollments: [],
+        notificationTokens: [], // Not present in POST response
       );
     } else if (json['user'] is Map<String, dynamic>) {
       // If user is a full object (from GET response), parse it
@@ -87,6 +87,8 @@ class GroupChatModel {
         role: '', // Not present in API response
         token: '', // Not present in API response
         enrollments: [], // Not present in API response
+        notificationTokens:
+            userJson['notification_tokens'] as List<dynamic>? ?? [],
       );
     } else {
       // Fallback for null or unexpected types
@@ -97,6 +99,7 @@ class GroupChatModel {
         role: '',
         token: '',
         enrollments: [],
+        notificationTokens: [], // Not present in POST response
       );
     }
 
