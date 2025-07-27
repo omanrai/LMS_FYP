@@ -5,7 +5,6 @@ import 'dart:io';
 import '../../model/auth/user_model.dart';
 import '../../screen/main_screen.dart';
 import '../../services/api_services.dart';
-import '../../services/course_services.dart';
 
 class LoginController extends GetxController {
   final formKey = GlobalKey<FormState>();

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/auth/login_controller.dart';
+import '../controller/course/course_review_controller.dart';
 import '../model/auth/user_model.dart';
+import 'AI/chat_AI_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/update_profile.dart';
 import 'courses/get_course.dart';
+import 'courses/review/show_review.dart';
 import 'teacher/teacher_course.dart';
 
 // Main Screen with Bottom Navigation
@@ -182,6 +185,29 @@ class _MainScreenState extends State<MainScreen> {
           subtitle: 'View your academic progress',
           color: Colors.green,
         ),
+        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.reviews,
+          title: 'Your Reviews',
+          subtitle: 'View Courses Review',
+          color: Colors.purple,
+          onTap: () {
+            Get.to(
+              () => ReviewScreen(),
+              binding: BindingsBuilder(() {
+                Get.lazyPut(() => CourseReviewController());
+              }),
+            );
+          },
+        ),
+        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.psychology,
+          title: 'Ask AI Assistant',
+          subtitle: 'Get help with your studies from AI',
+          color: Colors.deepOrange,
+          onTap: () => Get.to(() => ChatWithAIScreen()),
+        ),
       ],
     );
   }
@@ -227,10 +253,26 @@ class _MainScreenState extends State<MainScreen> {
         ),
         SizedBox(height: 16),
         _buildDashboardCard(
-          icon: Icons.assessment,
-          title: 'Assessments',
-          subtitle: 'Create and grade assessments',
+          icon: Icons.reviews,
+          title: 'Course Review',
+          subtitle: 'View and Manage Course Reviews',
           color: Colors.purple,
+          onTap: () {
+            Get.to(
+              () => ReviewScreen(),
+              binding: BindingsBuilder(() {
+                Get.lazyPut(() => CourseReviewController());
+              }),
+            );
+          },
+        ),
+        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.psychology,
+          title: 'Ask AI Assistant',
+          subtitle: 'Get help with your studies from AI',
+          color: Colors.deepOrange,
+          onTap: () => Get.to(() => ChatWithAIScreen()),
         ),
       ],
     );

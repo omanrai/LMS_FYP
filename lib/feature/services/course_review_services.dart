@@ -62,6 +62,7 @@ class CourseReviewService {
 
       final response = await _dio.get(
         courseReviewEndpoint,
+        queryParameters: {'approvedOnly': false}, // Adjust limit as needed
         options: Options(contentType: 'application/json'),
       );
 
@@ -433,7 +434,13 @@ class CourseReviewService {
 
       final response = await _dio.put(
         '$courseReviewEndpoint/$reviewId',
-        data: {'course': courseId,'user': userId,'rating': rating, 'comment': comment.trim(), 'isApproved': isApproved},
+        data: {
+          'course': courseId,
+          'user': userId,
+          'rating': rating,
+          'comment': comment.trim(),
+          'isApproved': isApproved,
+        },
         options: Options(contentType: 'application/json'),
       );
 

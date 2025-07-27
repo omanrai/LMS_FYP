@@ -599,54 +599,52 @@ class _LessonsTabWidgetState extends State<LessonsTabWidget> {
                           const Spacer(),
                           if (widget.loginController.user.value!.role ==
                               'teacher')
-                            Column(
-                              children: [
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () async {
-                                    log('delete lesson: ${lesson.title}');
-                                    final shouldEdit =
-                                        await DialogUtils.showConfirmDialog(
-                                          title: 'Delete Lesson',
-                                          message:
-                                              'Are you sure you want to delete "${lesson.title}"? This action cannot be undone.',
-                                          confirmText: 'Delete',
-                                          cancelText: 'Cancel',
-                                          icon: Icons.delete,
-                                          isDangerous: true,
-                                        );
-
-                                    if (shouldEdit) {
-                                      await widget.courseLessonController
-                                          .deleteCourseLesson(
-                                            lesson.id,
-                                            courseId: widget.course.id,
-                                          );
-                                    }
-                                  },
-                                  icon: const Icon(
-                                    Icons.delete_forever,
-                                    color: Color(0xFF6366F1),
-                                    size: 18,
-                                  ),
-                                ),
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () {
-                                    Get.to(
-                                      () => AddEditLessonScreen(
-                                        course: widget.course,
-                                        lesson: lesson,
-                                      ),
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () async {
+                                log('delete lesson: ${lesson.title}');
+                                final shouldEdit =
+                                    await DialogUtils.showConfirmDialog(
+                                      title: 'Delete Lesson',
+                                      message:
+                                          'Are you sure you want to delete "${lesson.title}"? This action cannot be undone.',
+                                      confirmText: 'Delete',
+                                      cancelText: 'Cancel',
+                                      icon: Icons.delete,
+                                      isDangerous: true,
                                     );
-                                  },
-                                  icon: const Icon(
-                                    Icons.edit,
-                                    color: Color(0xFF6366F1),
-                                    size: 18,
+
+                                if (shouldEdit) {
+                                  await widget.courseLessonController
+                                      .deleteCourseLesson(
+                                        lesson.id,
+                                        courseId: widget.course.id,
+                                      );
+                                }
+                              },
+                              icon: const Icon(
+                                Icons.delete_forever,
+                                color: Color(0xFF6366F1),
+                                size: 18,
+                              ),
+                            ),
+                          if (widget.loginController.user.value!.role ==
+                              'teacher')
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                Get.to(
+                                  () => AddEditLessonScreen(
+                                    course: widget.course,
+                                    lesson: lesson,
                                   ),
-                                ),
-                              ],
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Color(0xFF6366F1),
+                                size: 18,
+                              ),
                             ),
                         ],
                       ),

@@ -6,7 +6,7 @@ import '../../../core/utility/dialog_utils.dart';
 import '../../../core/utility/snackbar.dart';
 import '../../model/api_response_model.dart';
 import '../../model/course/lesson_test_question_model.dart';
-import '../../services/test_question_services.dart';
+import '../../services/lesson_test_question_services.dart';
 import 'course_lesson_controller.dart';
 
 class LessonTestQuestionController extends GetxController {

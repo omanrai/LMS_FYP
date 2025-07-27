@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 class EnrollmentModel {
   final String id;
   final StudentInfo studentId;
@@ -60,7 +62,19 @@ class EnrollmentModel {
     return jsonList.map((json) => EnrollmentModel.fromJson(json)).toList();
   }
 
-  
+  static int countApprovedEnrollments(
+    List<EnrollmentModel> enrollments,
+    String courseId,
+  ) {
+    return enrollments.where((enrollment) {
+      log("inside countApprovedEnrollments");
+      log(
+        'Checking enrollment: ${enrollment.id}, Course ID: $courseId, Status: ${enrollment.status}',
+      );
+      return enrollment.courseId.id == courseId &&
+          enrollment.status.toLowerCase() == 'approved';
+    }).length;
+  }
 
   @override
   String toString() {
@@ -112,4 +126,3 @@ class CourseInfo {
     return 'CourseInfo(id: $id, title: $title)';
   }
 }
-
