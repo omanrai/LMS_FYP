@@ -9,6 +9,7 @@ import '../../../controller/course/course_controller.dart';
 import '../../../controller/course/enrollment_controller.dart';
 import '../../../model/course/course_model.dart';
 import '../../../model/course/course_test_model.dart';
+import 'course_test_quiz.dart';
 import 'course_test_screen.dart';
 
 class FetchCourseScreen extends StatefulWidget {
@@ -352,7 +353,7 @@ class _FetchCourseScreenState extends State<FetchCourseScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Active Courses',
+                'Active Course',
                 '${controller.activeCourses}',
                 Icons.trending_up,
                 const Color(0xFF8B5CF6),
@@ -371,7 +372,7 @@ class _FetchCourseScreenState extends State<FetchCourseScreen> {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -384,7 +385,7 @@ class _FetchCourseScreenState extends State<FetchCourseScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -569,10 +570,12 @@ class _FetchCourseScreenState extends State<FetchCourseScreen> {
         : null;
     return GestureDetector(
       onTap: () {
-        if (isTeacher) {
+        if (isTeacher || loginController.user.value!.role == 'admin') {
+          log(course.id);
           Get.to(() => CourseTestQuestionScreen(course: course));
-        } else if (enrollment?.status == "approved") {
-          Get.to(() => CourseTestQuestionScreen(course: course));
+        } else if (enrollment?.status == "approved" &&
+            loginController.user.value!.role == 'student') {
+          Get.to(() => CourseTestQuizScreen(course: course));
         }
       },
       child: Container(

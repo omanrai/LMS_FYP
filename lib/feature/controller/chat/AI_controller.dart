@@ -1,275 +1,3 @@
-// import 'package:get/get.dart';
-// import 'package:flutter/material.dart';
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
-
-// enum AIProvider { chatGPT, claude, gemini }
-
-// class ChatMessage {
-//   final String content;
-//   final bool isUser;
-//   final DateTime timestamp;
-//   final AIProvider? aiProvider;
-
-//   ChatMessage({
-//     required this.content,
-//     required this.isUser,
-//     required this.timestamp,
-//     this.aiProvider,
-//   });
-// }
-
-// class ChatAIController extends GetxController {
-//   final RxList<ChatMessage> messages = <ChatMessage>[].obs;
-//   final RxBool isLoading = false.obs;
-//   final Rx<AIProvider> selectedProvider = AIProvider.chatGPT.obs;
-//   final TextEditingController messageController = TextEditingController();
-//   final ScrollController scrollController = ScrollController();
-
-//   // API Keys - In production, store these securely
-//   static const String openAIApiKey = 'YOUR_OPENAI_API_KEY';
-//   static const String claudeApiKey = 'YOUR_CLAUDE_API_KEY';
-//   static const String geminiApiKey = 'YOUR_GEMINI_API_KEY';
-
-//   @override
-//   void onInit() {
-//     super.onInit();
-//     _addWelcomeMessage();
-//   }
-
-//   @override
-//   void onClose() {
-//     messageController.dispose();
-//     scrollController.dispose();
-//     super.onClose();
-//   }
-
-//   void _addWelcomeMessage() {
-//     messages.add(
-//       ChatMessage(
-//         content:
-//             "Hello! I'm your AI assistant. How can I help you today? You can ask me questions about your studies, get explanations, or just have a conversation!",
-//         isUser: false,
-//         timestamp: DateTime.now(),
-//         aiProvider: selectedProvider.value,
-//       ),
-//     );
-//   }
-
-//   void changeAIProvider(AIProvider provider) {
-//     selectedProvider.value = provider;
-//     messages.add(
-//       ChatMessage(
-//         content:
-//             "Switched to ${_getProviderName(provider)}. How can I assist you?",
-//         isUser: false,
-//         timestamp: DateTime.now(),
-//         aiProvider: provider,
-//       ),
-//     );
-//     _scrollToBottom();
-//   }
-
-//   String _getProviderName(AIProvider provider) {
-//     switch (provider) {
-//       case AIProvider.chatGPT:
-//         return 'ChatGPT';
-//       case AIProvider.claude:
-//         return 'Claude';
-//       case AIProvider.gemini:
-//         return 'Gemini';
-//     }
-//   }
-
-//   Color _getProviderColor(AIProvider provider) {
-//     switch (provider) {
-//       case AIProvider.chatGPT:
-//         return Colors.green;
-//       case AIProvider.claude:
-//         return Colors.orange;
-//       case AIProvider.gemini:
-//         return Colors.blue;
-//     }
-//   }
-
-//   Color get currentProviderColor => _getProviderColor(selectedProvider.value);
-
-//   // Public methods for UI access
-//   Color getProviderColor(AIProvider provider) {
-//     switch (provider) {
-//       case AIProvider.chatGPT:
-//         return Colors.green;
-//       case AIProvider.claude:
-//         return Colors.orange;
-//       case AIProvider.gemini:
-//         return Colors.blue;
-//     }
-//   }
-
-//   String getProviderName(AIProvider provider) {
-//     switch (provider) {
-//       case AIProvider.chatGPT:
-//         return 'ChatGPT';
-//       case AIProvider.claude:
-//         return 'Claude';
-//       case AIProvider.gemini:
-//         return 'Gemini';
-//     }
-//   }
-
-//   void sendMessage() async {
-//     final messageText = messageController.text.trim();
-//     if (messageText.isEmpty || isLoading.value) return;
-
-//     // Add user message
-//     messages.add(
-//       ChatMessage(
-//         content: messageText,
-//         isUser: true,
-//         timestamp: DateTime.now(),
-//       ),
-//     );
-
-//     messageController.clear();
-//     isLoading.value = true;
-//     _scrollToBottom();
-
-//     try {
-//       String response;
-//       switch (selectedProvider.value) {
-//         case AIProvider.chatGPT:
-//           response = await _sendToChatGPT(messageText);
-//           break;
-//         case AIProvider.claude:
-//           response = await _sendToClaude(messageText);
-//           break;
-//         case AIProvider.gemini:
-//           response = await _sendToGemini(messageText);
-//           break;
-//       }
-
-//       // Add AI response
-//       messages.add(
-//         ChatMessage(
-//           content: response,
-//           isUser: false,
-//           timestamp: DateTime.now(),
-//           aiProvider: selectedProvider.value,
-//         ),
-//       );
-//     } catch (e) {
-//       // Add error message
-//       messages.add(
-//         ChatMessage(
-//           content:
-//               "Sorry, I encountered an error. Please try again. Error: ${e.toString()}",
-//           isUser: false,
-//           timestamp: DateTime.now(),
-//           aiProvider: selectedProvider.value,
-//         ),
-//       );
-//     } finally {
-//       isLoading.value = false;
-//       _scrollToBottom();
-//     }
-//   }
-
-//   Future<String> _sendToChatGPT(String message) async {
-//     // For demo purposes, return a mock response
-//     // In production, implement actual API call
-//     await Future.delayed(Duration(seconds: 2)); // Simulate API delay
-
-//     return _getMockResponse(message, AIProvider.chatGPT);
-
-//     /* Actual implementation would be:
-//     final response = await http.post(
-//       Uri.parse('https://api.openai.com/v1/chat/completions'),
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Authorization': 'Bearer $openAIApiKey',
-//       },
-//       body: json.encode({
-//         'model': 'gpt-3.5-turbo',
-//         'messages': [
-//           {'role': 'user', 'content': message}
-//         ],
-//         'max_tokens': 150,
-//       }),
-//     );
-
-//     if (response.statusCode == 200) {
-//       final data = json.decode(response.body);
-//       return data['choices'][0]['message']['content'];
-//     } else {
-//       throw Exception('Failed to get response from ChatGPT');
-//     }
-//     */
-//   }
-
-//   Future<String> _sendToClaude(String message) async {
-//     // For demo purposes, return a mock response
-//     await Future.delayed(Duration(seconds: 2));
-
-//     return _getMockResponse(message, AIProvider.claude);
-//   }
-
-//   Future<String> _sendToGemini(String message) async {
-//     // For demo purposes, return a mock response
-//     await Future.delayed(Duration(seconds: 2));
-
-//     return _getMockResponse(message, AIProvider.gemini);
-//   }
-
-//   String _getMockResponse(String message, AIProvider provider) {
-//     final providerName = _getProviderName(provider);
-
-//     // Simple mock responses based on keywords
-//     final lowerMessage = message.toLowerCase();
-
-//     if (lowerMessage.contains('hello') || lowerMessage.contains('hi')) {
-//       return "Hello! I'm $providerName. Nice to meet you! How can I help you with your studies today?";
-//     } else if (lowerMessage.contains('math') ||
-//         lowerMessage.contains('mathematics')) {
-//       return "I'd be happy to help with mathematics! Whether it's algebra, calculus, geometry, or any other math topic, feel free to ask me specific questions or problems you're working on.";
-//     } else if (lowerMessage.contains('science') ||
-//         lowerMessage.contains('physics') ||
-//         lowerMessage.contains('chemistry')) {
-//       return "Science is fascinating! I can help explain concepts in physics, chemistry, biology, and other scientific fields. What specific topic would you like to explore?";
-//     } else if (lowerMessage.contains('code') ||
-//         lowerMessage.contains('programming')) {
-//       return "I can definitely help with programming! Whether you're learning Python, Java, JavaScript, Flutter, or any other programming language, I'm here to assist with concepts, debugging, and best practices.";
-//     } else if (lowerMessage.contains('essay') ||
-//         lowerMessage.contains('writing')) {
-//       return "I can help you with writing! Whether it's structuring an essay, improving grammar, developing arguments, or brainstorming ideas, let me know what you're working on.";
-//     } else {
-//       return "That's an interesting question! As $providerName, I'm here to help you learn and understand various topics. Could you provide more details about what you'd like to know or discuss?";
-//     }
-//   }
-
-//   void _scrollToBottom() {
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       if (scrollController.hasClients) {
-//         scrollController.animateTo(
-//           scrollController.position.maxScrollExtent,
-//           duration: Duration(milliseconds: 300),
-//           curve: Curves.easeOut,
-//         );
-//       }
-//     });
-//   }
-
-//   void clearChat() {
-//     messages.clear();
-//     _addWelcomeMessage();
-//   }
-
-//   void deleteMessage(int index) {
-//     if (index >= 0 && index < messages.length) {
-//       messages.removeAt(index);
-//     }
-//   }
-// }
-
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -380,17 +108,36 @@ class ChatAIController extends GetxController {
     print('Storage error: $error');
 
     // Show fallback dialog for manual key entry
-    Get.snackbar(
+    _showSnackbar(
       'Storage Issue',
       'Unable to access secure storage. You can still enter API keys manually.',
       backgroundColor: Colors.orange,
-      colorText: Colors.white,
-      duration: Duration(seconds: 4),
     );
 
     // Show setup dialog after a delay
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(Duration(seconds: 2), () {
       _showApiKeySetupDialog();
+    });
+  }
+
+  // Safe snackbar method to prevent conflicts
+  void _showSnackbar(String title, String message, {Color? backgroundColor}) {
+    // Close any existing snackbar first
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    }
+
+    // Small delay to ensure previous snackbar is fully closed
+    Future.delayed(Duration(milliseconds: 100), () {
+      Get.snackbar(
+        title,
+        message,
+        backgroundColor: backgroundColor ?? Colors.green,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+        margin: EdgeInsets.all(16),
+        borderRadius: 8,
+      );
     });
   }
 
@@ -450,19 +197,16 @@ class ChatAIController extends GetxController {
         _addWelcomeMessage();
       }
 
-      Get.snackbar(
+      _showSnackbar(
         'Success',
         'API keys saved successfully! Available providers: ${availableProviders.length}',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
       );
     } catch (e) {
       print('Error storing API keys: $e');
-      Get.snackbar(
+      _showSnackbar(
         'Error',
         'Failed to save API keys. Please try again.',
         backgroundColor: Colors.red,
-        colorText: Colors.white,
       );
     }
   }
@@ -546,7 +290,7 @@ class ChatAIController extends GetxController {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () => _safeDialogClose(),
                   child: Text(
                     'Cancel',
                     style: TextStyle(color: Colors.grey[600]),
@@ -561,20 +305,16 @@ class ChatAIController extends GetxController {
 
                     // Validate that at least one key is provided
                     if (openAI.isEmpty && claude.isEmpty && gemini.isEmpty) {
-                      Get.snackbar(
+                      _showSnackbar(
                         'Error',
                         'Please provide at least one API key',
                         backgroundColor: Colors.red,
-                        colorText: Colors.white,
                       );
                       return;
                     }
 
-                    // Show loading
-                    Get.dialog(
-                      Center(child: CircularProgressIndicator()),
-                      barrierDismissible: true,
-                    );
+                    // Show loading dialog safely
+                    _showLoadingDialog();
 
                     await _storeApiKeys(
                       openAI.isEmpty ? null : openAI,
@@ -582,9 +322,8 @@ class ChatAIController extends GetxController {
                       gemini.isEmpty ? null : gemini,
                     );
 
-                    // Close loading dialog and main dialog
-                    Get.back(); // Close loading
-                    Get.back(); // Close main dialog
+                    // Close dialogs safely
+                    await _safeCloseAllDialogs();
                   },
                   child: Text('Save Keys'),
                 ),
@@ -595,6 +334,55 @@ class ChatAIController extends GetxController {
       ),
       barrierDismissible: hasAnyApiKey.value,
     );
+  }
+
+  // Safe dialog closing methods
+  void _showLoadingDialog() {
+    Get.dialog(
+      Center(
+        child: Container(
+          padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Saving API keys...'),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  void _safeDialogClose() {
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+  }
+
+  Future<void> _safeCloseAllDialogs() async {
+    // Close any existing snackbars first
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+      await Future.delayed(Duration(milliseconds: 100));
+    }
+
+    // Close loading dialog
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+      await Future.delayed(Duration(milliseconds: 100));
+    }
+
+    // Close main dialog
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
   }
 
   void _addWelcomeMessage() {
@@ -613,12 +401,10 @@ class ChatAIController extends GetxController {
   void changeAIProvider(AIProvider provider) {
     // Check if provider is available
     if (!availableProviders.contains(provider)) {
-      Get.snackbar(
+      _showSnackbar(
         'Provider Unavailable',
         'API key for ${_getProviderName(provider)} is not configured. Please add it in settings.',
         backgroundColor: Colors.orange,
-        colorText: Colors.white,
-        duration: Duration(seconds: 3),
       );
       return;
     }
@@ -667,22 +453,20 @@ class ChatAIController extends GetxController {
 
     // Check if current provider is available
     if (!availableProviders.contains(selectedProvider.value)) {
-      Get.snackbar(
+      _showSnackbar(
         'Error',
         'API key not found for ${_getProviderName(selectedProvider.value)}. Please configure it first.',
         backgroundColor: Colors.red,
-        colorText: Colors.white,
       );
       return;
     }
 
     String? apiKey = _getApiKeyForProvider(selectedProvider.value);
     if (apiKey == null || apiKey.isEmpty) {
-      Get.snackbar(
+      _showSnackbar(
         'Error',
         'API key not found for ${_getProviderName(selectedProvider.value)}',
         backgroundColor: Colors.red,
-        colorText: Colors.white,
       );
       return;
     }

@@ -21,12 +21,30 @@ class LoginController extends GetxController {
   final Rx<UserModel?> user = Rx<UserModel?>(null);
   final Rx<File?> selectedProfileImage = Rx<File?>(null);
 
+  // Flag to control when the controller can be deleted
+  bool _canDelete = false;
+
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
-    nameController.dispose();
+    // Only dispose controllers if we're allowed to delete
+    if (_canDelete) {
+      emailController.dispose();
+      passwordController.dispose();
+      nameController.dispose();
+    }
     super.onClose();
+  }
+
+  // Renamed to avoid conflict with GetLifeCycleBase.onDelete field
+  void deleteController() {
+    if (_canDelete) {
+      super.onClose();
+    }
+  }
+
+  // Method to allow deletion (called during logout)
+  void allowDeletion() {
+    _canDelete = true;
   }
 
   // Method to reset controller state (useful for logout)
@@ -135,6 +153,13 @@ class LoginController extends GetxController {
 
         // Save UserModel using Get.put so it's accessible globally
         Get.put<UserModel>(user.value!, permanent: true);
+
+        // Make LoginController globally available
+        // Delete any existing instance first
+        if (Get.isRegistered<LoginController>()) {
+          Get.delete<LoginController>();
+        }
+        Get.put<LoginController>(this, permanent: true);
 
         // Show success message
         Get.snackbar(

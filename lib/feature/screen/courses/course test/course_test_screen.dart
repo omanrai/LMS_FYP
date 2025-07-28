@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fyp/core/utility/dialog_utils.dart';
 import 'package:get/get.dart';
 import '../../../controller/course/course_test_controller.dart';
-// import '../../../model/course/course_lesson_model.dart';
 import '../../../model/course/course_model.dart';
 import '../../../model/course/course_test_model.dart';
 import 'add_edit_course_test.dart';
-// import '../../../model/course/lesson_test_question_model.dart';
-// import 'add_edit_lesson_test.dart';
 
 class CourseTestQuestionScreen extends StatelessWidget {
   final CourseModel course;
@@ -111,7 +108,7 @@ class CourseTestQuestionScreen extends StatelessWidget {
             child: Text(
               'Course Name : ${title}',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
                 height: 1.5,
@@ -436,7 +433,7 @@ class CourseTestQuestionScreen extends StatelessWidget {
                         onSelected: (value) async {
                           switch (value) {
                             case 'edit':
-                              _showEditQuestionScreen(context, testQuestion);
+                              // _showEditQuestionScreen(context, testQuestion);
                               break;
                             case 'delete':
                               final confirmed = await DialogUtils.showConfirmDialog(

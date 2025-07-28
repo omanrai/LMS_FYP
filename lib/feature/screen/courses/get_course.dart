@@ -377,7 +377,7 @@ class _CourseScreenState extends State<CourseScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Active Courses',
+                'Active Course',
                 '${controller.activeCourses}',
                 Icons.trending_up,
                 const Color(0xFF8B5CF6),
@@ -396,7 +396,7 @@ class _CourseScreenState extends State<CourseScreen> {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -409,7 +409,7 @@ class _CourseScreenState extends State<CourseScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),

@@ -6,9 +6,7 @@ import '../../../core/utility/dialog_utils.dart';
 import '../../../core/utility/snackbar.dart';
 import '../../model/api_response_model.dart';
 import '../../model/course/course_test_model.dart';
-
 import '../../services/course_test_services.dart';
-import 'course_lesson_controller.dart';
 
 class CourseTestController extends GetxController {
   // Observable lists and variables
@@ -290,10 +288,7 @@ class CourseTestController extends GetxController {
       if (response.success) {
         testQuestions.removeWhere((question) => question.id == testId);
         log('Test question deleted successfully: $testId');
-        CourseLessonController courseLessonController =
-            Get.find<CourseLessonController>();
 
-        await courseLessonController.fetchCourseLessons();
         SnackBarMessage.showSuccessMessage(
           'Test question deleted successfully',
         );

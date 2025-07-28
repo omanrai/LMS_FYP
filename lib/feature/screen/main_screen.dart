@@ -168,18 +168,18 @@ class _MainScreenState extends State<MainScreen> {
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.book,
-          title: 'My Courses',
+          title: 'My Enrolled Courses',
           subtitle: 'View your enrolled courses',
           color: Colors.blue,
           onTap: () => Get.to(() => CourseScreen()),
         ),
-        SizedBox(height: 16),
-        _buildDashboardCard(
-          icon: Icons.grade,
-          title: 'Grades',
-          subtitle: 'View your academic progress',
-          color: Colors.green,
-        ),
+        // SizedBox(height: 16),
+        // _buildDashboardCard(
+        //   icon: Icons.grade,
+        //   title: 'Grades',
+        //   subtitle: 'View your academic progress',
+        //   color: Colors.green,
+        // ),
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.reviews,
@@ -206,8 +206,8 @@ class _MainScreenState extends State<MainScreen> {
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.quiz,
-          title: 'Course Test',
-          subtitle: 'Manage Course Test',
+          title: 'Course Test Quiz',
+          subtitle: 'Start Course Test Journey',
           color: Colors.amber,
           onTap: () => Get.to(() => FetchCourseScreen()),
         ),
@@ -285,13 +285,13 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildAdminContent() {
     return Column(
       children: [
-        _buildDashboardCard(
-          icon: Icons.dashboard,
-          title: 'System Overview',
-          subtitle: 'View system statistics',
-          color: Colors.purple,
-        ),
-        SizedBox(height: 16),
+        // _buildDashboardCard(
+        //   icon: Icons.dashboard,
+        //   title: 'System Overview',
+        //   subtitle: 'View system statistics',
+        //   color: Colors.purple,
+        // ),
+        // SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.manage_accounts,
           title: 'User Management',
@@ -300,20 +300,29 @@ class _MainScreenState extends State<MainScreen> {
           onTap: () => Get.to(() => UserManagementScreen()),
         ),
         SizedBox(height: 16),
-        _buildDashboardCard(
-          icon: Icons.settings_applications,
-          title: 'System Settings',
-          subtitle: 'Configure system preferences',
-          color: Colors.indigo,
-          // onTap: () => Get.to(() => SettingsScreen()),
-        ),
-        SizedBox(height: 16),
+        // _buildDashboardCard(
+        //   icon: Icons.settings_applications,
+        //   title: 'System Settings',
+        //   subtitle: 'Configure system preferences',
+        //   color: Colors.indigo,
+        //   // onTap: () => Get.to(() => SettingsScreen()),
+        // ),
+        // SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.person,
           title: 'Profile Settings',
           subtitle: 'Manage your profile',
           color: Colors.indigo,
           onTap: () => Get.to(() => ProfileScreen()),
+        ),
+
+        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.quiz,
+          title: 'Course Test',
+          subtitle: 'View Course Test',
+          color: Colors.amber,
+          onTap: () => Get.to(() => FetchCourseScreen()),
         ),
       ],
     );
@@ -423,30 +432,30 @@ class _MainScreenState extends State<MainScreen> {
             subtitle: 'Manage your profile information',
             roleColor: roleColor,
           ),
-          _buildSettingsItem(
-            icon: Icons.security,
-            title: 'Security',
-            subtitle: 'Change password and security settings',
-            roleColor: roleColor,
-          ),
+          // _buildSettingsItem(
+          //   icon: Icons.security,
+          //   title: 'Security',
+          //   subtitle: 'Change password and security settings',
+          //   roleColor: roleColor,
+          // ),
           _buildSettingsItem(
             icon: Icons.notifications_outlined,
             title: 'Notification Preferences',
             subtitle: 'Manage notification settings',
             roleColor: roleColor,
           ),
-          _buildSettingsItem(
-            icon: Icons.dark_mode,
-            title: 'Theme',
-            subtitle: 'Choose your preferred theme',
-            roleColor: roleColor,
-          ),
-          _buildSettingsItem(
-            icon: Icons.language,
-            title: 'Language',
-            subtitle: 'Select your language',
-            roleColor: roleColor,
-          ),
+          // _buildSettingsItem(
+          //   icon: Icons.dark_mode,
+          //   title: 'Theme',
+          //   subtitle: 'Choose your preferred theme',
+          //   roleColor: roleColor,
+          // ),
+          // _buildSettingsItem(
+          //   icon: Icons.language,
+          //   title: 'Language',
+          //   subtitle: 'Select your language',
+          //   roleColor: roleColor,
+          // ),
           _buildSettingsItem(
             icon: Icons.logout,
             title: 'Logout',
@@ -581,9 +590,13 @@ class _MainScreenState extends State<MainScreen> {
               Get.back();
               // Clear user data and reset controller state
               loginController.resetState();
+
+              // Delete both UserModel and LoginController from memory
               Get.delete<UserModel>();
+              Get.delete<LoginController>();
+
               // Navigate to login screen
-              Get.offAll(() => LoginScreen()); // Replace with your login screen
+              Get.offAll(() => LoginScreen());
             },
             child: Text('Logout', style: TextStyle(color: Colors.red)),
           ),

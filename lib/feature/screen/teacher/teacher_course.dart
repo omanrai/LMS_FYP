@@ -644,7 +644,7 @@ class _TeacherCourseScreenState extends State<TeacherCourseScreen> {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -657,7 +657,7 @@ class _TeacherCourseScreenState extends State<TeacherCourseScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -670,9 +670,11 @@ class _TeacherCourseScreenState extends State<TeacherCourseScreen> {
           const SizedBox(height: 12),
           Text(
             title,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
+
               color: Color(0xFF6B7280),
             ),
           ),
