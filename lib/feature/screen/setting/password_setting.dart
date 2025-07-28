@@ -70,14 +70,12 @@ class SecuritySettingsScreen extends StatelessWidget {
                   trailing: Switch(
                     value: loginController.isBiometricEnabled.value,
                     onChanged: loginController.canUseBiometrics.value
-                        ? (value) {
+                        ? (value) async {
                             if (value) {
                               _showBiometricConfirmationDialog(loginController);
                             } else {
-                              loginController.isBiometricEnabled.value = false;
-                              loginController.secureStorage.delete(
-                                key: 'biometric_enabled',
-                              );
+                              // Disable biometrics
+                              await loginController.disableBiometrics();
                               Get.snackbar(
                                 'Success',
                                 'Biometric authentication disabled.',
@@ -157,7 +155,11 @@ class SecuritySettingsScreen extends StatelessWidget {
                       roleColor,
                     ),
                     _buildTipItem(
-                      'Enable two-factor authentication when available for added security.',
+                      'Enable biometric authentication for quick and secure access.',
+                      roleColor,
+                    ),
+                    _buildTipItem(
+                      'Log out of your account when using shared devices.',
                       roleColor,
                     ),
                     _buildTipItem(
@@ -276,7 +278,7 @@ class SecuritySettingsScreen extends StatelessWidget {
       AlertDialog(
         title: const Text('Enable Biometric Authentication'),
         content: const Text(
-          'Are you sure you want to enable biometric authentication?',
+          'Are you sure you want to enable biometric authentication?\n\nThis will allow you to log in using your fingerprint or face recognition.',
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         actions: [
@@ -291,12 +293,15 @@ class SecuritySettingsScreen extends StatelessWidget {
             onPressed: () async {
               Get.back();
               bool success = await controller.enableBiometrics();
-              if (!success) {
-                controller.isBiometricEnabled.value = false;
+              if (success) {
+                // Store current user credentials after enabling biometrics
+                if (controller.user.value != null) {
+                  await controller.storeUserCredentials();
+                }
               }
             },
             child: Text(
-              'Confirm',
+              'Enable',
               style: TextStyle(color: roleColor ?? Colors.blue),
             ),
           ),
