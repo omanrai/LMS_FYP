@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../controller/course/course_test_controller.dart';
-import '../../../controller/course/test_question_controller.dart';
-import '../../../model/course/lesson_test_question_model.dart';
+import '../../../model/course/course_test_model.dart';
 
 class AddEditCourseTestScreen extends StatefulWidget {
   final String? courseId;
-  final String? lessonTitle;
-  final LessonTestQuestionModel? testQuestion;
+  final CourseTestModel? testQuestion;
 
-  const AddEditCourseTestScreen({
-    Key? key,
-    this.courseId,
-    this.lessonTitle,
-    this.testQuestion,
-  }) : super(key: key);
+  const AddEditCourseTestScreen({Key? key, this.courseId, this.testQuestion})
+    : super(key: key);
 
   @override
   _AddEditCourseTestScreenState createState() =>
@@ -37,6 +31,7 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
     } else {
       controller.clearForm();
       controller.questionControllers.clear();
+
       controller.questionControllers.add(TextEditingController());
       _optionControllersList = [<TextEditingController>[]];
       controller.selectedCorrectAnswers.clear();
@@ -44,9 +39,6 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
 
       if (widget.courseId != null) {
         controller.courseIdController.text = widget.courseId!;
-      }
-      if (widget.lessonTitle != null) {
-        controller.titleController.text = widget.lessonTitle!;
       }
     }
   }
@@ -118,6 +110,8 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
           children: [
             _buildTestInfo(),
             const SizedBox(height: 24),
+            _buildTestTitleCard(),
+            const SizedBox(height: 24),
             _buildFormCard(),
             const SizedBox(height: 24),
             _buildSubmitButton(),
@@ -188,6 +182,67 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
     );
   }
 
+  Widget _buildTestTitleCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Test Title *',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF374151),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: controller.titleController,
+            decoration: InputDecoration(
+              hintText: 'Enter overall test title...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6366F1),
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.all(16),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Test title is required';
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFormCard() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -205,14 +260,18 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Test Question Details'),
+          _buildSectionTitle('Test Questions'),
           const SizedBox(height: 20),
           _buildQuestionsSection(),
           const SizedBox(height: 20),
-          if (controller.errorMessage.value.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _buildErrorMessage(),
-          ],
+          Obx(() {
+            if (controller.errorMessage.value.isNotEmpty) {
+              return Column(
+                children: [const SizedBox(height: 16), _buildErrorMessage()],
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
     );
@@ -233,13 +292,29 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Question *',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF374151),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Questions *',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF374151),
+              ),
+            ),
+            if (controller.questionControllers.length < 10)
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    controller.addQuestion();
+                    _optionControllersList.add(<TextEditingController>[]);
+                  });
+                },
+                icon: const Icon(Icons.add_circle, color: Color(0xFF6366F1)),
+                tooltip: 'Add Question',
+              ),
+          ],
         ),
         const SizedBox(height: 12),
         Obx(
@@ -272,8 +347,40 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Question ${index + 1}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              if (controller.questionControllers.length > 1)
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      controller.removeQuestion(index);
+                      if (index < _optionControllersList.length) {
+                        for (var controller in _optionControllersList[index]) {
+                          controller.dispose();
+                        }
+                        _optionControllersList.removeAt(index);
+                      }
+                    });
+                  },
+                  icon: const Icon(Icons.remove_circle, color: Colors.red),
+                  tooltip: 'Remove Question',
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Question Text Field
           const Text(
-            'Question',
+            'Question Text *',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -306,6 +413,11 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
   }
 
   Widget _buildOptionsSection(int questionIndex) {
+    // Ensure we have options list for this question
+    if (questionIndex >= _optionControllersList.length) {
+      _optionControllersList.add(<TextEditingController>[]);
+    }
+
     final optionCount = _optionControllersList[questionIndex].length;
 
     return Column(
@@ -337,7 +449,7 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
                 color: optionCount >= 4 ? Colors.grey : Color(0xFF667EEA),
               ),
               tooltip: optionCount >= 4
-                  ? 'Exactly 4 options required'
+                  ? 'Maximum 4 options allowed'
                   : 'Add Option',
             ),
           ],
@@ -347,55 +459,6 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
       ],
     );
   }
-
-  // Widget _buildOptionsSection(int questionIndex) {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Row(
-  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //         children: [
-  //           const Text(
-  //             'Answer Options',
-  //             style: TextStyle(
-  //               fontSize: 14,
-  //               fontWeight: FontWeight.w600,
-  //               color: Color(0xFF1E293B),
-  //             ),
-  //           ),
-  //           Container(
-  //             decoration: BoxDecoration(
-  //               color: const Color(0xFF667EEA).withOpacity(0.1),
-  //               borderRadius: BorderRadius.circular(8),
-  //             ),
-  //             child: IconButton(
-  //               onPressed: _optionControllersList[questionIndex].length >= 4
-  //                   ? null
-  //                   : () {
-  //                       setState(() {
-  //                         _optionControllersList[questionIndex].add(
-  //                           TextEditingController(),
-  //                         );
-  //                       });
-  //                     },
-  //               icon: Icon(
-  //                 Icons.add_rounded,
-  //                 color: _optionControllersList[questionIndex].length >= 4
-  //                     ? Colors.grey
-  //                     : const Color(0xFF667EEA),
-  //               ),
-  //               tooltip: _optionControllersList[questionIndex].length >= 4
-  //                   ? 'Maximum 4 options allowed'
-  //                   : 'Add Option',
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       const SizedBox(height: 16),
-  //       _buildOptionsList(questionIndex),
-  //     ],
-  //   );
-  // }
 
   Widget _buildOptionsList(int questionIndex) {
     final optionControllers = _optionControllersList[questionIndex];
@@ -417,13 +480,12 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color:
-                  controller.selectedCorrectAnswers[questionIndex] ==
-                      optionIndex
+                  questionIndex < controller.selectedCorrectAnswers.length &&
+                      controller.selectedCorrectAnswers[questionIndex] ==
+                          optionIndex
                   ? const Color(0xFF10B981)
                   : const Color(0xFFE2E8F0),
-              width: controller.selectedCorrectAnswer.value == optionIndex
-                  ? 2
-                  : 2,
+              width: 2,
             ),
           ),
           child: Column(
@@ -436,8 +498,11 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
                     height: 24,
                     decoration: BoxDecoration(
                       color:
-                          controller.selectedCorrectAnswers[questionIndex] ==
-                              optionIndex
+                          questionIndex <
+                                  controller.selectedCorrectAnswers.length &&
+                              controller
+                                      .selectedCorrectAnswers[questionIndex] ==
+                                  optionIndex
                           ? const Color(0xFF10B981)
                           : const Color(0xFF94A3B8),
                       borderRadius: BorderRadius.circular(12),
@@ -467,6 +532,11 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
+                        // Ensure we have enough elements in selectedCorrectAnswers
+                        while (controller.selectedCorrectAnswers.length <=
+                            questionIndex) {
+                          controller.selectedCorrectAnswers.add(0);
+                        }
                         controller.selectedCorrectAnswers[questionIndex] =
                             optionIndex;
                       });
@@ -478,24 +548,34 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
                       ),
                       decoration: BoxDecoration(
                         color:
-                            controller.selectedCorrectAnswers[questionIndex] ==
-                                optionIndex
+                            questionIndex <
+                                    controller.selectedCorrectAnswers.length &&
+                                controller
+                                        .selectedCorrectAnswers[questionIndex] ==
+                                    optionIndex
                             ? const Color(0xFF10B981)
                             : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        controller.selectedCorrectAnswers[questionIndex] ==
-                                optionIndex
+                        questionIndex <
+                                    controller.selectedCorrectAnswers.length &&
+                                controller
+                                        .selectedCorrectAnswers[questionIndex] ==
+                                    optionIndex
                             ? 'Correct'
                             : 'Select',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color:
-                              controller
-                                      .selectedCorrectAnswers[questionIndex] ==
-                                  optionIndex
+                              questionIndex <
+                                      controller
+                                          .selectedCorrectAnswers
+                                          .length &&
+                                  controller
+                                          .selectedCorrectAnswers[questionIndex] ==
+                                      optionIndex
                               ? Colors.white
                               : const Color(0xFF64748B),
                         ),
@@ -510,13 +590,21 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
                           _optionControllersList[questionIndex].removeAt(
                             optionIndex,
                           );
+
                           // Adjust selected correct answer if necessary
-                          if (controller.selectedCorrectAnswer.value ==
-                              optionIndex) {
-                            controller.selectedCorrectAnswer.value = 0;
-                          } else if (controller.selectedCorrectAnswer.value >
-                              optionIndex) {
-                            controller.selectedCorrectAnswer.value--;
+                          if (questionIndex <
+                              controller.selectedCorrectAnswers.length) {
+                            if (controller
+                                    .selectedCorrectAnswers[questionIndex] ==
+                                optionIndex) {
+                              controller.selectedCorrectAnswers[questionIndex] =
+                                  0;
+                            } else if (controller
+                                    .selectedCorrectAnswers[questionIndex] >
+                                optionIndex) {
+                              controller
+                                  .selectedCorrectAnswers[questionIndex]--;
+                            }
                           }
                         });
                       },
@@ -569,9 +657,11 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
           const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 20),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              controller.errorMessage.value,
-              style: const TextStyle(color: Color(0xFFEF4444), fontSize: 14),
+            child: Obx(
+              () => Text(
+                controller.errorMessage.value,
+                style: const TextStyle(color: Color(0xFFEF4444), fontSize: 14),
+              ),
             ),
           ),
         ],
@@ -589,35 +679,40 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
           ),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: ElevatedButton.icon(
-          onPressed: controller.isCreating.value || controller.isUpdating.value
-              ? null
-              : _submitTestQuestion,
-          icon: controller.isCreating.value || controller.isUpdating.value
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : Icon(isEditMode ? Icons.save : Icons.add),
-          label: Text(
-            controller.isCreating.value || controller.isUpdating.value
-                ? (isEditMode ? 'Updating Question...' : 'Creating Question...')
-                : (isEditMode ? 'Update Question' : 'Create Question'),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+        child: Obx(
+          () => ElevatedButton.icon(
+            onPressed:
+                controller.isCreating.value || controller.isUpdating.value
+                ? null
+                : _submitTestQuestion,
+            icon: controller.isCreating.value || controller.isUpdating.value
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Icon(isEditMode ? Icons.save : Icons.add),
+            label: Text(
+              controller.isCreating.value || controller.isUpdating.value
+                  ? (isEditMode
+                        ? 'Updating Question...'
+                        : 'Creating Question...')
+                  : (isEditMode ? 'Update Question' : 'Create Question'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 18),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 18),
+            ),
           ),
         ),
       ),
@@ -629,38 +724,51 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
       return;
     }
 
+    // Clear any previous error messages
+    controller.errorMessage.value = '';
+
     if (controller.questionControllers.isEmpty) {
       controller.errorMessage.value = 'At least one question is required';
       return;
     }
 
+    // Check if all questions have options
     bool hasQuestionsWithoutOptions = false;
     for (int i = 0; i < _optionControllersList.length; i++) {
       if (_optionControllersList[i].isEmpty) {
         hasQuestionsWithoutOptions = true;
+        controller.errorMessage.value =
+            'Question ${i + 1} must have at least one option';
         break;
+      }
+
+      // Check if any options are empty
+      for (int j = 0; j < _optionControllersList[i].length; j++) {
+        if (_optionControllersList[i][j].text.trim().isEmpty) {
+          controller.errorMessage.value =
+              'All options must have text. Question ${i + 1}, Option ${j + 1} is empty';
+          return;
+        }
       }
     }
 
     if (hasQuestionsWithoutOptions) {
-      controller.errorMessage.value =
-          'All questions must have at least one option';
       return;
     }
 
-    if (controller.selectedCorrectAnswers.isEmpty ||
-        controller.selectedCorrectAnswers.any((i) => i < 0)) {
-      controller.errorMessage.value =
-          'Please select a correct answer for each question';
-      return;
+    // Check if correct answers are selected for all questions
+    for (int i = 0; i < controller.questionControllers.length; i++) {
+      if (i >= controller.selectedCorrectAnswers.length ||
+          controller.selectedCorrectAnswers[i] < 0 ||
+          controller.selectedCorrectAnswers[i] >=
+              _optionControllersList[i].length) {
+        controller.errorMessage.value =
+            'Please select a correct answer for question ${i + 1}';
+        return;
+      }
     }
 
-    if (controller.selectedCorrectAnswers[0] >=
-        _optionControllersList[0].length) {
-      controller.errorMessage.value = 'Selected correct answer is invalid';
-      return;
-    }
-
+    // Prepare options list
     final optionsList = _optionControllersList
         .map(
           (controllers) =>

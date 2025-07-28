@@ -12,10 +12,8 @@ import 'course_lesson_controller.dart';
 
 class CourseTestController extends GetxController {
   // Observable lists and variables
-  final RxList<CourseTestModel> testQuestions =
-      <CourseTestModel>[].obs;
-  final Rx<CourseTestModel?> selectedTestQuestion =
-      Rx<CourseTestModel?>(null);
+  final RxList<CourseTestModel> testQuestions = <CourseTestModel>[].obs;
+  final Rx<CourseTestModel?> selectedTestQuestion = Rx<CourseTestModel?>(null);
   final RxList<int> selectedCorrectAnswers = <int>[].obs;
 
   // Loading states
@@ -26,9 +24,13 @@ class CourseTestController extends GetxController {
   final RxBool isFetchingById = false.obs;
 
   // Form controllers for create/update
-  final TextEditingController titleController = TextEditingController();
+  final TextEditingController titleController =
+      TextEditingController(); // Overall test title
   final TextEditingController courseIdController = TextEditingController();
   final RxList<TextEditingController> questionControllers =
+      <TextEditingController>[].obs;
+  final RxList<TextEditingController>
+  questionTitleControllers = // Individual question titles
       <TextEditingController>[].obs;
   final RxInt selectedCorrectAnswer = 0.obs;
 
@@ -54,6 +56,7 @@ class CourseTestController extends GetxController {
   // Initialize question controllers (default 1 question)
   void _initializeQuestionControllers() {
     questionControllers.clear();
+
     questionControllers.add(TextEditingController());
 
     selectedCorrectAnswers.clear();
@@ -72,6 +75,7 @@ class CourseTestController extends GetxController {
   void addQuestion() {
     if (questionControllers.length < 10) {
       questionControllers.add(TextEditingController());
+      selectedCorrectAnswers.add(0);
     }
   }
 
@@ -80,6 +84,7 @@ class CourseTestController extends GetxController {
     if (questionControllers.length > 1 && index < questionControllers.length) {
       questionControllers[index].dispose();
       questionControllers.removeAt(index);
+      selectedCorrectAnswers.removeAt(index);
 
       if (selectedCorrectAnswer.value >= questionControllers.length) {
         selectedCorrectAnswer.value = questionControllers.length - 1;
@@ -185,12 +190,14 @@ class CourseTestController extends GetxController {
         return false;
       }
 
-      // Build questions with their respective options
+      // Build questions with their respective options and titles
       List<CourseTestQuestion> questions = [];
       for (int i = 0; i < questionControllers.length; i++) {
         final questionText = questionControllers[i].text.trim();
         final options = optionsList?[i] ?? [];
-        questions.add(CourseTestQuestion(question: questionText, options: options));
+        questions.add(
+          CourseTestQuestion(question: questionText, options: options),
+        );
       }
 
       if (questions.isEmpty || questions.any((q) => q.options.isEmpty)) {
@@ -205,6 +212,7 @@ class CourseTestController extends GetxController {
       bool hasEmptyOptions = questions.any((q) => q.options.isEmpty);
       if (hasEmptyOptions) {
         errorMessage.value = 'All questions must have at least one option';
+        DialogUtils.hideDialog();
         return false;
       }
 
@@ -212,6 +220,7 @@ class CourseTestController extends GetxController {
       if (selectedCorrectAnswer.value < 0 ||
           selectedCorrectAnswer.value >= questions.length) {
         errorMessage.value = 'Please select a valid correct answer';
+        DialogUtils.hideDialog();
         return false;
       }
 
@@ -238,10 +247,7 @@ class CourseTestController extends GetxController {
         clearForm();
         log('✅ Test question created successfully: ${response.data!.title}');
         log('✅ Response data: ${response.data!.toJson()}');
-        CourseLessonController courseLessonController =
-            Get.find<CourseLessonController>();
 
-        await courseLessonController.fetchCourseLessons();
         SnackBarMessage.showSuccessMessage(
           'Test question created successfully',
         );
@@ -254,6 +260,7 @@ class CourseTestController extends GetxController {
         return false;
       }
     } catch (e, stackTrace) {
+      DialogUtils.hideDialog();
       log('❌ Error creating test question: $e');
       log('Stack trace: $stackTrace');
       SnackBarMessage.showErrorMessage('An unexpected error occurred: $e');
@@ -292,8 +299,6 @@ class CourseTestController extends GetxController {
         );
         return true;
       } else {
-        // hasError.value = true;
-        // errorMessage.value = response.message;
         log('Failed to delete test question: ${response.message}');
         SnackBarMessage.showErrorMessage(
           'Failed to delete test question ${response.message}',
@@ -301,8 +306,6 @@ class CourseTestController extends GetxController {
         return false;
       }
     } catch (e) {
-      // hasError.value = true;
-      // errorMessage.value = 'An unexpected error occurred';
       log('Error deleting test question: $e');
       SnackBarMessage.showErrorMessage('An unexpected error occurred');
       return false;
@@ -327,6 +330,7 @@ class CourseTestController extends GetxController {
 
     _disposeQuestionControllers();
     questionControllers.clear();
+
     for (int i = 0; i < question.questions.length; i++) {
       questionControllers.add(
         TextEditingController(text: question.questions[i].question),
@@ -339,6 +343,7 @@ class CourseTestController extends GetxController {
     courseIdController.clear();
     selectedCorrectAnswers.clear();
     questionControllers.clear();
+
     questionControllers.add(TextEditingController());
     selectedCorrectAnswers.add(0);
   }
@@ -347,9 +352,9 @@ class CourseTestController extends GetxController {
     // Clear previous errors
     errorMessage.value = '';
 
-    // Check title
+    // Check overall test title
     if (titleController.text.trim().isEmpty) {
-      errorMessage.value = 'Title is required';
+      errorMessage.value = 'Test title is required';
       return false;
     }
 
@@ -365,7 +370,7 @@ class CourseTestController extends GetxController {
       return false;
     }
 
-    // Check if all questions have text
+    // Check if all questions have titles and text
     for (int i = 0; i < questionControllers.length; i++) {
       if (questionControllers[i].text.trim().isEmpty) {
         errorMessage.value = 'Question ${i + 1} text is required';

@@ -8,6 +8,7 @@ import '../../../controller/auth/login_controller.dart';
 import '../../../controller/course/course_controller.dart';
 import '../../../controller/course/enrollment_controller.dart';
 import '../../../model/course/course_model.dart';
+import '../../../model/course/course_test_model.dart';
 import 'course_test_screen.dart';
 
 class FetchCourseScreen extends StatefulWidget {
@@ -559,16 +560,19 @@ class _FetchCourseScreenState extends State<FetchCourseScreen> {
     );
   }
 
-  Widget _buildCourseCard(CourseModel course) {
+  Widget _buildCourseCard(
+    CourseModel course, {
+    CourseTestModel? courseTestModel,
+  }) {
     final enrollment = !isTeacher
         ? enrollmentController.getEnrollmentForCourse(course.id)
         : null;
     return GestureDetector(
       onTap: () {
         if (isTeacher) {
-          Get.to(() => CourseTestQuestionScreen());
+          Get.to(() => CourseTestQuestionScreen(course: course));
         } else if (enrollment?.status == "approved") {
-          Get.to(() => CourseTestQuestionScreen(enrollment: enrollment));
+          Get.to(() => CourseTestQuestionScreen(course: course));
         }
       },
       child: Container(

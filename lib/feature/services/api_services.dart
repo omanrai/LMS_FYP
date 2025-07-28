@@ -5,11 +5,15 @@ import 'dart:io';
 import '../../core/constant/api_url.dart';
 import '../../core/helpers/internet_connection.dart';
 import '../model/api_response_model.dart';
+import '../model/auth/user_model.dart';
 
 class ApiService {
   static const String registerEndpoint = '/authentication/register';
   static const String loginEndpoint = '/authentication/login';
   static const String updateProfileEndpoint = '/authentication/me';
+  static const String suspendUnsuspendEndpoint =
+      '/authentication/suspend-un-suspend';
+  static const String getAllUsersEndpoint = '/authentication/get-all-users';
   static const Duration timeoutDuration = Duration(seconds: 30);
 
   static Dio? _dio;
@@ -239,6 +243,173 @@ class ApiService {
         message:
             'An unexpected error occurred at update profile: ${e.toString()}',
       );
+    }
+  }
+
+  static Future<ApiResponse<Map<String, dynamic>>> suspendUnsuspendUser(
+    String userId,
+    bool isSuspended,
+  ) async {
+    try {
+      // Check internet connection
+      if (!await ConnectivityService.hasInternetConnection()) {
+        return ApiResponse<Map<String, dynamic>>(
+          success: false,
+          message: 'No internet connection. Please check your network.',
+        );
+      }
+
+      // Initialize Dio if not already done
+      _initializeDio();
+
+      // Debug print the values
+      log('Debug - UserId: $userId');
+      log('Debug - IsSuspended: $isSuspended');
+
+      if (userId.isEmpty) {
+        return ApiResponse<Map<String, dynamic>>(
+          success: false,
+          message: 'User ID cannot be empty.',
+        );
+      }
+
+      final response = await _dio!.put(
+        suspendUnsuspendEndpoint,
+        data: {'userId': userId, 'isSuspended': isSuspended},
+        options: Options(contentType: 'application/json'),
+      );
+
+      return _handleResponse(response);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    } catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message:
+            'An unexpected error occurred at suspend/unsuspend user: ${e.toString()}',
+      );
+    }
+  }
+
+  static Future<ApiResponse<List<UserModel>>> getAllUsers() async {
+    try {
+      // Check internet connection
+      if (!await ConnectivityService.hasInternetConnection()) {
+        return ApiResponse<List<UserModel>>(
+          success: false,
+          message: 'No internet connection. Please check your network.',
+        );
+      }
+
+      // Initialize Dio if not already done
+      _initializeDio();
+
+      log('Debug - Fetching all users');
+
+      final response = await _dio!.get(
+        getAllUsersEndpoint,
+        options: Options(contentType: 'application/json'),
+      );
+
+      // Debug logging
+      log('Raw response data type: ${response.data.runtimeType}');
+      log('Raw response data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Handle the response data
+        if (response.data is List) {
+          final List<dynamic> usersData = response.data as List<dynamic>;
+          final List<UserModel> users = [];
+
+          for (var userData in usersData) {
+            if (userData is Map<String, dynamic>) {
+              final userModel = UserModel(
+                id: userData['_id']?.toString() ?? '',
+                email: userData['email']?.toString() ?? '',
+                name: userData['name']?.toString() ?? '',
+                image: userData['image']?.toString(),
+                role: userData['role']?.toString() ?? '',
+                token: '', // No token in getAllUsers response
+                enrollments: List<dynamic>.from(userData['enrollments'] ?? []),
+                notificationTokens: List<dynamic>.from(
+                  userData['notification_tokens'] ?? [],
+                ),
+                isSuspended: userData['isSuspended'] == true,
+                createdAt: userData['createdAt'],
+                updatedAt: userData['updatedAt'],
+                version: userData['__v'] is int ? userData['__v'] : null,
+              );
+              users.add(userModel);
+            }
+          }
+
+          return ApiResponse<List<UserModel>>(
+            success: true,
+            message: 'Users fetched successfully',
+            data: users,
+            statusCode: response.statusCode,
+          );
+        } else {
+          log('Error: Expected List but got ${response.data.runtimeType}');
+          return ApiResponse<List<UserModel>>(
+            success: false,
+            message: 'Invalid response format from server',
+          );
+        }
+      } else {
+        return ApiResponse<List<UserModel>>(
+          success: false,
+          message: 'Failed to fetch users',
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      log('DioException in getAllUsers: $e');
+      return _handleDioErrorForUsers(e);
+    } catch (e) {
+      log('Exception in getAllUsers: $e');
+      return ApiResponse<List<UserModel>>(
+        success: false,
+        message:
+            'An unexpected error occurred at get all users: ${e.toString()}',
+      );
+    }
+  }
+
+  static ApiResponse<List<UserModel>> _handleDioErrorForUsers(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return ApiResponse<List<UserModel>>(
+          success: false,
+          message: 'Connection timeout. Please check your internet connection.',
+        );
+      case DioExceptionType.connectionError:
+        return ApiResponse<List<UserModel>>(
+          success: false,
+          message: 'No internet connection. Please check your network.',
+        );
+      case DioExceptionType.badResponse:
+        return ApiResponse<List<UserModel>>(
+          success: false,
+          message: 'Server error occurred. Please try again.',
+        );
+      case DioExceptionType.cancel:
+        return ApiResponse<List<UserModel>>(
+          success: false,
+          message: 'Request was cancelled.',
+        );
+      case DioExceptionType.unknown:
+        return ApiResponse<List<UserModel>>(
+          success: false,
+          message: 'An unexpected error occurred. Please try again.',
+        );
+      default:
+        return ApiResponse<List<UserModel>>(
+          success: false,
+          message: 'Network error occurred: ${e.message}',
+        );
     }
   }
 

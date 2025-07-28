@@ -5,6 +5,7 @@ import '../controller/auth/login_controller.dart';
 import '../controller/course/course_review_controller.dart';
 import '../model/auth/user_model.dart';
 import 'AI/chat_AI_screen.dart';
+import 'admin/user_management.dart';
 import 'auth/login_screen.dart';
 import 'auth/update_profile.dart';
 import 'courses/course test/fetch_course.dart';
@@ -138,7 +139,7 @@ class _MainScreenState extends State<MainScreen> {
               //   style: TextStyle(fontSize: 18, color: Colors.grey[700]),
               //   textAlign: TextAlign.center,
               // ),
-              SizedBox(height: 40),
+              SizedBox(height: 20),
               // Role-specific content
               _buildRoleSpecificContent(user),
             ],
@@ -172,13 +173,6 @@ class _MainScreenState extends State<MainScreen> {
           color: Colors.blue,
           onTap: () => Get.to(() => CourseScreen()),
         ),
-        // SizedBox(height: 16),
-        // _buildDashboardCard(
-        //   icon: Icons.assignment,
-        //   title: 'Assignments',
-        //   subtitle: 'Check pending assignments',
-        //   color: Colors.orange,
-        // ),
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.grade,
@@ -303,6 +297,7 @@ class _MainScreenState extends State<MainScreen> {
           title: 'User Management',
           subtitle: 'Manage users and roles',
           color: Colors.red,
+          onTap: () => Get.to(() => UserManagementScreen()),
         ),
         SizedBox(height: 16),
         _buildDashboardCard(
@@ -310,6 +305,15 @@ class _MainScreenState extends State<MainScreen> {
           title: 'System Settings',
           subtitle: 'Configure system preferences',
           color: Colors.indigo,
+          // onTap: () => Get.to(() => SettingsScreen()),
+        ),
+        SizedBox(height: 16),
+        _buildDashboardCard(
+          icon: Icons.person,
+          title: 'Profile Settings',
+          subtitle: 'Manage your profile',
+          color: Colors.indigo,
+          onTap: () => Get.to(() => ProfileScreen()),
         ),
       ],
     );

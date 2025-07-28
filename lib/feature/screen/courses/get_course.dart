@@ -661,14 +661,14 @@ class _CourseScreenState extends State<CourseScreen> {
                         topRight: Radius.circular(16),
                       ),
                       child: Image.network(
-                        '${course.coverImage}',
+                        '$ASSETS_URL${course.coverImage}',
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/logo.png',
-                            fit: BoxFit.cover,
-                          );
-                        },
+                        // errorBuilder: (context, error, stackTrace) {
+                        //   return Image.asset(
+                        //     'assets/logo.png',
+                        //     fit: BoxFit.cover,
+                        //   );
+                        // },
                       ),
                     ),
                   ),

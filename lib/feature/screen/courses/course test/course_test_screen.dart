@@ -1,46 +1,26 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fyp/core/utility/dialog_utils.dart';
 import 'package:get/get.dart';
 import '../../../controller/course/course_test_controller.dart';
-import '../../../controller/course/enrollment_controller.dart';
+// import '../../../model/course/course_lesson_model.dart';
+import '../../../model/course/course_model.dart';
 import '../../../model/course/course_test_model.dart';
-import '../../../model/course/enrollment_model.dart';
+import 'add_edit_course_test.dart';
+// import '../../../model/course/lesson_test_question_model.dart';
+// import 'add_edit_lesson_test.dart';
 
-class CourseTestQuestionScreen extends StatefulWidget {
-  final EnrollmentModel? enrollment;
-
-  CourseTestQuestionScreen({Key? key, this.enrollment}) : super(key: key);
-
-  @override
-  State<CourseTestQuestionScreen> createState() =>
-      _CourseTestQuestionScreenState();
-}
-
-class _CourseTestQuestionScreenState extends State<CourseTestQuestionScreen> {
+class CourseTestQuestionScreen extends StatelessWidget {
+  final CourseModel course;
   final CourseTestController controller = Get.put(CourseTestController());
+  // final CourseLessonModel lesson = Get.arguments as CourseLessonModel;
 
-  final EnrollmentController enrollmentController = Get.put(
-    EnrollmentController(),
-  );
-  String enrollStatus = '';
-
-  final CourseTestModel lesson = Get.arguments as CourseTestModel;
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    enrollStatus = widget.enrollment?.status ?? 'not_enrolled';
-    log(enrollStatus);
-  }
+  CourseTestQuestionScreen({Key? key, required this.course}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (controller.courseIdController.text.isEmpty) {
-      controller.courseIdController.text = lesson.id;
-      controller.titleController.text = lesson.title;
+      controller.courseIdController.text = course.id;
+
       controller.fetchTestQuestions();
     }
     return Scaffold(
@@ -87,7 +67,7 @@ class _CourseTestQuestionScreenState extends State<CourseTestQuestionScreen> {
           Expanded(
             child: Obx(
               () => _buildStatCard(
-                title: lesson.title,
+                title: course.title,
                 subTitle: 'Total Questions',
                 value: controller.testQuestions.length.toString(),
                 icon: Icons.quiz_outlined,
@@ -429,7 +409,7 @@ class _CourseTestQuestionScreenState extends State<CourseTestQuestionScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Lesson ${testQuestion.lessonId}',
+                            'Test ID ${testQuestion.id}',
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.white,
@@ -469,7 +449,7 @@ class _CourseTestQuestionScreenState extends State<CourseTestQuestionScreen> {
                                 isDangerous: true,
                               );
                               if (confirmed) {
-                                controller.deleteTestQuestion(testQuestion.id!);
+                                controller.deleteTestQuestion(testQuestion.id);
                               }
                               break;
                           }
@@ -536,13 +516,24 @@ class _CourseTestQuestionScreenState extends State<CourseTestQuestionScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            testQuestion.title.isNotEmpty
+                                ? testQuestion.title
+                                : 'No Title',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
                           if (questionData.question.isNotEmpty) ...[
                             Text(
                               questionData.question,
                               style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF1E293B),
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF64748B),
                                 height: 1.5,
                               ),
                             ),
@@ -708,22 +699,15 @@ class _CourseTestQuestionScreenState extends State<CourseTestQuestionScreen> {
 
   void _showCreateQuestionScreen(BuildContext context) {
     controller.clearForm();
-    // Get.to(
-    //   () => AddEditTestQuestionScreen(
-    //     lessonId: lesson.id,
-    //     lessonTitle: lesson.title,
-    //   ),
-    // );
+    Get.to(() => AddEditCourseTestScreen(courseId: course.id));
   }
 
   void _showEditQuestionScreen(BuildContext context, CourseTestModel question) {
     controller.populateFormWithQuestion(question);
-    // Get.to(
-    //   () => AddEditTestQuestionScreen(
-    //     lessonId: lesson.id,
-    //     testQuestion: question,
-    //   ),
-    // );
+    Get.to(
+      () =>
+          AddEditCourseTestScreen(courseId: course.id, testQuestion: question),
+    );
   }
 
   String _formatDateTime(DateTime dateTime) {

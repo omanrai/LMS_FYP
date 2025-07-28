@@ -257,7 +257,7 @@ class CourseTestServices {
       };
 
       final response = await _dio.post(
-        '$courseTestQuestionEndpoint/$courseId',
+        '$courseTestQuestionEndpoint',
         data: requestData,
         options: Options(contentType: 'application/json'),
       );
@@ -317,10 +317,6 @@ class CourseTestServices {
       );
     }
   }
-
-  // update
-
-  // static Future<ApiResponse<CourseTestModel>> updateTestQuestion({});
 
   // Modified deleteTestQuestion method - now requires courseId parameter
   static Future<ApiResponse<bool>> deleteTestQuestion({
