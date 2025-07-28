@@ -3,10 +3,10 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  awesome_notifications
   connectivity_plus
   file_selector_windows
   flutter_secure_storage_windows
+  local_auth_windows
   url_launcher_windows
 )
 

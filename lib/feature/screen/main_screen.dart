@@ -15,6 +15,7 @@ import 'courses/course test/fetch_course.dart';
 import 'courses/get_course.dart';
 import 'courses/review/show_review.dart';
 import 'setting/notification_setting.dart';
+import 'setting/password_setting.dart';
 import 'teacher/teacher_course.dart';
 
 // Main Screen with Bottom Navigation
@@ -363,6 +364,12 @@ class _MainScreenState extends State<MainScreen> {
             roleColor: roleColor,
           ),
           _buildSettingsItem(
+            icon: Icons.lock,
+            title: 'Security Settings',
+            subtitle: 'Update your password and security options',
+            roleColor: roleColor,
+          ),
+          _buildSettingsItem(
             icon: Icons.notifications_outlined,
             title: 'Notification Preferences',
             subtitle: 'Manage notification settings',
@@ -413,6 +420,13 @@ class _MainScreenState extends State<MainScreen> {
               Get.to(() => ProfileScreen());
             } else if (title == 'Notification Preferences') {
               Get.to(() => NotificationPreferencesScreen());
+            } else if (title == 'Security Settings') {
+              Get.to(
+                () => SecuritySettingsScreen(
+                  user: loginController.user.value,
+                  roleColor: roleColor,
+                ),
+              );
             } else {
               Get.snackbar(
                 'Info',
