@@ -27,6 +27,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
   bool showResults = false;
   List<int?> userAnswers = [];
   List<bool> questionResults = [];
+  List<MapEntry<CourseTestModel, CourseTestQuestion>> allQuestions = [];
 
   // Animation controllers
   late AnimationController _progressAnimationController;
@@ -77,8 +78,19 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
 
   void _initializeQuiz() {
     if (controller.testQuestions.isNotEmpty) {
-      userAnswers = List.filled(controller.testQuestions.length, null);
-      questionResults = List.filled(controller.testQuestions.length, false);
+      // Flatten the questions from all CourseTestModel objects
+      allQuestions = controller.testQuestions
+          .asMap()
+          .entries
+          .expand(
+            (entry) => entry.value.questions.asMap().entries.map(
+              (q) => MapEntry(entry.value, q.value),
+            ),
+          )
+          .toList();
+
+      userAnswers = List.filled(allQuestions.length, null);
+      questionResults = List.filled(allQuestions.length, false);
       _slideAnimationController.forward();
     }
   }
@@ -91,8 +103,8 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
   }
 
   double get progressPercentage {
-    if (controller.testQuestions.isEmpty) return 0.0;
-    return (correctAnswers / controller.testQuestions.length) * 100;
+    if (allQuestions.isEmpty) return 0.0;
+    return (correctAnswers / allQuestions.length) * 100;
   }
 
   void _selectAnswer(int answerIndex) {
@@ -108,7 +120,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
     userAnswers[currentQuestionIndex] = selectedAnswer;
 
     // Check if answer is correct
-    final currentQuestion = controller.testQuestions[currentQuestionIndex];
+    final currentQuestion = allQuestions[currentQuestionIndex].value;
     bool isCorrect = selectedAnswer == currentQuestion.correctAnswer;
     questionResults[currentQuestionIndex] = isCorrect;
 
@@ -117,7 +129,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
     }
 
     // Move to next question or show results
-    if (currentQuestionIndex < controller.testQuestions.length - 1) {
+    if (currentQuestionIndex < allQuestions.length - 1) {
       setState(() {
         currentQuestionIndex++;
         selectedAnswer = null;
@@ -125,7 +137,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
 
       // Update progress animation
       _progressAnimationController.animateTo(
-        (currentQuestionIndex + 1) / controller.testQuestions.length,
+        (currentQuestionIndex + 1) / allQuestions.length,
       );
 
       // Slide animation for next question
@@ -162,8 +174,8 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
       correctAnswers = 0;
       isQuizCompleted = false;
       showResults = false;
-      userAnswers = List.filled(controller.testQuestions.length, null);
-      questionResults = List.filled(controller.testQuestions.length, false);
+      userAnswers = List.filled(allQuestions.length, null);
+      questionResults = List.filled(allQuestions.length, false);
     });
 
     _progressAnimationController.reset();
@@ -212,12 +224,12 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
         onPressed: () => Get.back(),
       ),
       actions: [
-        if (!showResults && controller.testQuestions.isNotEmpty)
+        if (!showResults && allQuestions.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(
               child: Text(
-                '${currentQuestionIndex + 1}/${controller.testQuestions.length}',
+                '${currentQuestionIndex + 1}/${allQuestions.length}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -367,10 +379,9 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
   }
 
   Widget _buildQuizContent() {
-    final currentQuestion = controller.testQuestions[currentQuestionIndex];
-    final questionData = currentQuestion.questions.isNotEmpty
-        ? currentQuestion.questions.first
-        : CourseTestQuestion(question: '', options: []);
+    final currentEntry = allQuestions[currentQuestionIndex];
+    final currentTest = currentEntry.key;
+    final currentQuestion = currentEntry.value;
 
     return Column(
       children: [
@@ -386,9 +397,9 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildQuestionCard(currentQuestion, questionData),
+                  _buildQuestionCard(currentTest, currentQuestion),
                   const SizedBox(height: 20),
-                  _buildAnswerOptions(questionData.options),
+                  _buildAnswerOptions(currentQuestion.options),
                 ],
               ),
             ),
@@ -428,7 +439,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
                 ),
               ),
               Text(
-                '${((currentQuestionIndex / controller.testQuestions.length) * 100).toInt()}% Complete',
+                '${((currentQuestionIndex / allQuestions.length) * 100).toInt()}% Complete',
                 style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
               ),
             ],
@@ -438,7 +449,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
             animation: _progressAnimation,
             builder: (context, child) {
               return LinearProgressIndicator(
-                value: currentQuestionIndex / controller.testQuestions.length,
+                value: currentQuestionIndex / allQuestions.length,
                 backgroundColor: const Color(0xFFF1F5F9),
                 valueColor: const AlwaysStoppedAnimation<Color>(
                   Color(0xFF6366F1),
@@ -633,7 +644,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
             elevation: selectedAnswer != null ? 2 : 0,
           ),
           child: Text(
-            currentQuestionIndex < controller.testQuestions.length - 1
+            currentQuestionIndex < allQuestions.length - 1
                 ? 'Next Question'
                 : 'Finish Quiz',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -718,7 +729,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '$correctAnswers out of ${controller.testQuestions.length} questions correct',
+                  '$correctAnswers out of ${allQuestions.length} questions correct',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white.withOpacity(0.9),
@@ -746,7 +757,7 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
               Expanded(
                 child: _buildStatCard(
                   'Wrong',
-                  (controller.testQuestions.length - correctAnswers).toString(),
+                  (allQuestions.length - correctAnswers).toString(),
                   const Color(0xFFEF4444),
                   Icons.cancel_rounded,
                 ),
@@ -781,7 +792,6 @@ class _CourseTestQuizScreenState extends State<CourseTestQuizScreen>
                 child: OutlinedButton.icon(
                   onPressed: () {
                     Get.back();
-                    // Get.back();
                   },
                   icon: const Icon(Icons.arrow_back_rounded),
                   label: const Text('Back to Course'),

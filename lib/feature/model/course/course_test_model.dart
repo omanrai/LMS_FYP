@@ -2,14 +2,21 @@ class CourseTestQuestion {
   final String? id;
   final String question;
   final List<String> options;
+  final int correctAnswer; // Add this field
 
-  CourseTestQuestion({this.id, required this.question, required this.options});
+  CourseTestQuestion({
+    this.id,
+    required this.question,
+    required this.options,
+    required this.correctAnswer,
+  });
 
   factory CourseTestQuestion.fromJson(Map<String, dynamic> json) {
     return CourseTestQuestion(
       id: json['_id'] ?? json['id'],
       question: json['question'] ?? '',
       options: List<String>.from(json['options'] ?? []),
+      correctAnswer: json['correctAnswer'] ?? 0,
     );
   }
 
@@ -18,40 +25,10 @@ class CourseTestQuestion {
       if (id != null) '_id': id,
       'question': question,
       'options': options,
+      'correctAnswer': correctAnswer,
     };
   }
-
-  CourseTestQuestion copyWith({
-    String? id,
-    String? question,
-    List<String>? options,
-  }) {
-    return CourseTestQuestion(
-      id: id ?? this.id,
-      question: question ?? this.question,
-      options: options ?? this.options,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'CorseTestQuestion(id: $id, question: $question, options: $options)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is CourseTestQuestion &&
-        other.id == id &&
-        other.question == question;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode ^ question.hashCode;
-  }
 }
-
 // Model for the complete test/quiz
 class CourseTestModel {
   final String id;

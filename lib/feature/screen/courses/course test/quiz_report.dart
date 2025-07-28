@@ -268,7 +268,7 @@ class QuizReportScreen extends StatelessWidget {
   Widget _buildQuestionReviewCard(CourseTestModel testQuestion, int index) {
     final questionData = testQuestion.questions.isNotEmpty
         ? testQuestion.questions.first
-        : CourseTestQuestion(question: '', options: []);
+        : CourseTestQuestion(question: '', options: [], correctAnswer: 0);
     
     final userAnswer = userAnswers[index];
     final correctAnswer = testQuestion.correctAnswer;

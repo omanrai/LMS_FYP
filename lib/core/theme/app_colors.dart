@@ -9,9 +9,11 @@ import 'package:flutter/material.dart';
 // Progress Indicators: For progress bars or badges to draw attention.
 
 // Color primaryColor = const Color(0xFF042954);
-Color primaryColor = const Color(0xFF285F95);
+Color primaryColor = const Color(0xFF6366F1);
+// Color primaryColor = const Color(0xFF285F95);
 
-Color ancientColor = const Color.fromARGB(255, 106, 156, 206);
+Color ancientColor = const Color(0xFF8B5CF6);
+// Color ancientColor = const Color.fromARGB(255, 106, 156, 206);
 
 // secondaryColor = FFA701
 // Navigation bars, headers, and primary backgrounds.

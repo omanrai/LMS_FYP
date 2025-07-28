@@ -7,6 +7,7 @@ import '../../../core/utility/snackbar.dart';
 import '../../model/api_response_model.dart';
 import '../../model/course/course_test_model.dart';
 import '../../services/course_test_services.dart';
+import '../miscalleneous/notification_controller.dart';
 
 class CourseTestController extends GetxController {
   // Observable lists and variables
@@ -97,6 +98,9 @@ class CourseTestController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
       await Future.delayed(Duration(seconds: 2));
+      log(
+        'Fetching test questions for course ID: ${courseIdController.text.trim()}',
+      );
 
       final ApiResponse<List<CourseTestModel>> response =
           await CourseTestServices.getTestQuestionList(
@@ -174,9 +178,9 @@ class CourseTestController extends GetxController {
     );
 
     if (!shouldCreate) return false;
+
     try {
       DialogUtils.showLoadingDialog(message: 'Creating lesson test...');
-
       await Future.delayed(const Duration(seconds: 2));
 
       isCreating.value = true;
@@ -194,7 +198,11 @@ class CourseTestController extends GetxController {
         final questionText = questionControllers[i].text.trim();
         final options = optionsList?[i] ?? [];
         questions.add(
-          CourseTestQuestion(question: questionText, options: options),
+          CourseTestQuestion(
+            question: questionText,
+            options: options,
+            correctAnswer: selectedCorrectAnswers[i],
+          ),
         );
       }
 
@@ -239,22 +247,51 @@ class CourseTestController extends GetxController {
             questions: questions,
             correctAnswer: correctAnswer,
           );
+
       DialogUtils.hideDialog(); // Hide loading dialog
+
       if (response.success && response.data != null) {
         testQuestions.add(response.data!);
-        clearForm();
-        log('✅ Test question created successfully: ${response.data!.title}');
-        log('✅ Response data: ${response.data!.toJson()}');
 
+        try {
+          log('Creating test notification...');
+          final NotificationController notificationController = Get.put(
+            NotificationController(),
+          );
+          await notificationController.createTestNotification(
+            recipients: [],
+            title: "New Course Update for ${titleController.text.trim()}",
+            body: "A new lesson test has been added to your course",
+            courseId: courseIdController.text.trim(),
+          );
+        } catch (e) {
+          log('Error creating test notification: $e');
+          SnackBarMessage.showErrorMessage(
+            'Test question created, but failed to send notification: $e',
+          );
+        }
+
+        clearForm();
         SnackBarMessage.showSuccessMessage(
           'Test question created successfully',
         );
+
+        // 🎯 BEST PLACE: Navigate back after successful creation
+        // Give user time to see the success message, then navigate back
+        await Future.delayed(const Duration(milliseconds: 1500));
+        Get.back();
+
         return true;
       } else {
         log('❌ Failed to create test question: ${response.message}');
         SnackBarMessage.showErrorMessage(
           'Failed to create test question: ${response.message}',
         );
+
+        // Option: You could also navigate back on failure if desired
+        // Uncomment the line below if you want to go back even on failure
+        // Get.back();
+
         return false;
       }
     } catch (e, stackTrace) {
@@ -262,6 +299,7 @@ class CourseTestController extends GetxController {
       log('❌ Error creating test question: $e');
       log('Stack trace: $stackTrace');
       SnackBarMessage.showErrorMessage('An unexpected error occurred: $e');
+
       return false;
     } finally {
       isCreating.value = false;

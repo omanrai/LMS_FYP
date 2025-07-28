@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fyp/core/utility/dialog_utils.dart';
 import 'package:get/get.dart';
-import '../../../controller/course/course_test_controller.dart';
-import '../../../model/course/course_model.dart';
-import '../../../model/course/course_test_model.dart';
-import 'add_edit_course_test.dart';
 
-class CourseTestQuestionScreen extends StatelessWidget {
+import '../../controller/course/course_test_controller.dart';
+import '../../model/course/course_model.dart';
+import '../../model/course/course_test_model.dart';
+
+class AdminCourseTestQuestionScreen extends StatelessWidget {
   final CourseModel course;
   final CourseTestController controller = Get.put(CourseTestController());
   // final CourseLessonModel lesson = Get.arguments as CourseLessonModel;
 
-  CourseTestQuestionScreen({Key? key, required this.course}) : super(key: key);
+  AdminCourseTestQuestionScreen({Key? key, required this.course})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,6 @@ class CourseTestQuestionScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
@@ -66,9 +66,7 @@ class CourseTestQuestionScreen extends StatelessWidget {
               () => _buildStatCard(
                 title: course.title,
                 subTitle: 'Total Questions',
-                value: controller.testQuestions
-                    .fold(0, (sum, test) => sum + test.questions.length)
-                    .toString(), // Sum the number of questions
+                value: controller.testQuestions.length.toString(),
                 icon: Icons.quiz_outlined,
                 color: const Color(0xFF3B82F6),
                 gradient: const LinearGradient(
@@ -320,22 +318,6 @@ class CourseTestQuestionScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () => _showCreateQuestionScreen(Get.context!),
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Create Question'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF667EEA),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -361,6 +343,10 @@ class CourseTestQuestionScreen extends StatelessWidget {
     BuildContext context,
     int index,
   ) {
+    final questionData = testQuestion.questions.isNotEmpty
+        ? testQuestion.questions.first
+        : CourseTestQuestion(question: '', options: [], correctAnswer: 0);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -381,21 +367,6 @@ class CourseTestQuestionScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Display the test title once at the top
-                Center(
-                  child: Text(
-                    testQuestion.title.isNotEmpty
-                        ? testQuestion.title
-                        : 'No Title',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
                 Row(
                   children: [
                     Container(
@@ -429,97 +400,155 @@ class CourseTestQuestionScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Spacer(),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Container(
+                      width: 25,
+                      height: 25,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: PopupMenuButton<String>(
-                        icon: const Icon(
-                          Icons.more_vert_rounded,
-                          color: Color(0xFF64748B),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        onSelected: (value) async {
-                          switch (value) {
-                            // case 'edit':
-                            //   _showEditQuestionScreen(context, testQuestion);
-                            //   break;
-                            case 'delete':
-                              final confirmed = await DialogUtils.showConfirmDialog(
-                                title: 'Delete Lesson Test',
-                                message:
-                                    'Are you sure you want to delete this lesson test?',
-                                confirmText: 'Delete',
-                                cancelText: 'Cancel',
-                                icon: Icons.delete_forever,
-                                isDangerous: true,
-                              );
-                              if (confirmed) {
-                                controller.deleteTestQuestion(testQuestion.id);
-                              }
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          // const PopupMenuItem(
-                          //   value: 'edit',
-                          //   child: Row(
-                          //     children: [
-                          //       Icon(
-                          //         Icons.edit_rounded,
-                          //         color: Color(0xFF3B82F6),
-                          //         size: 18,
-                          //       ),
-                          //       SizedBox(width: 12),
-                          //       Text('Edit Question'),
-                          //     ],
-                          //   ),
-                          // ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.delete_rounded,
-                                  color: Colors.red,
-                                  size: 18,
-                                ),
-                                SizedBox(width: 12),
-                                Text('Delete Question'),
-                              ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            testQuestion.title.isNotEmpty
+                                ? testQuestion.title
+                                : 'No Title',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                              height: 1.5,
                             ),
                           ),
+                          const SizedBox(height: 14),
+                          if (questionData.question.isNotEmpty) ...[
+                            Text(
+                              questionData.question,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF64748B),
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                // Display all questions
-                ...testQuestion.questions.asMap().entries.map((entry) {
-                  final questionIndex = entry.key;
-                  final questionData = entry.value;
-                  return _buildQuestionContent(
-                    testQuestion,
-                    questionData,
-                    context,
-                    index,
-                    questionIndex,
-                  );
-                }).toList(),
               ],
             ),
           ),
-          if (testQuestion.questions.isNotEmpty)
+          const SizedBox(height: 16),
+          if (questionData.options.isNotEmpty)
             Container(
               padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    'Answer Options',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...questionData.options.asMap().entries.map((entry) {
+                    final optionIndex = entry.key;
+                    final option = entry.value;
+                    final isCorrect = optionIndex == testQuestion.correctAnswer;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isCorrect
+                            ? const Color(0xFF10B981).withOpacity(0.08)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isCorrect
+                              ? const Color(0xFF10B981).withOpacity(0.3)
+                              : const Color(0xFFE2E8F0),
+                          width: isCorrect ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: isCorrect
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF94A3B8),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Center(
+                              child: Text(
+                                String.fromCharCode(65 + optionIndex),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              option,
+                              style: TextStyle(
+                                color: isCorrect
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFF374151),
+                                fontWeight: isCorrect
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                          if (isCorrect)
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(
+                                Icons.check_rounded,
+                                color: Color(0xFF047857),
+                                size: 16,
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                   if (testQuestion.createdAt != null)
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -551,203 +580,6 @@ class CourseTestQuestionScreen extends StatelessWidget {
             ),
         ],
       ),
-    );
-  }
-
-  Widget _buildQuestionContent(
-    CourseTestModel testQuestion,
-    CourseTestQuestion questionData,
-    BuildContext context,
-    int testIndex,
-    int questionIndex,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 25,
-              height: 25,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  '${testIndex + 1}.${questionIndex + 1}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (questionData.question.isNotEmpty)
-                    Text(
-                      questionData.question,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF64748B),
-                        height: 1.5,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (questionData.options.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Answer Options',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...questionData.options.asMap().entries.map((entry) {
-                final optionIndex = entry.key;
-                final option = entry.value;
-                final isCorrect = optionIndex == testQuestion.correctAnswer;
-
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isCorrect
-                        ? const Color(0xFF10B981).withOpacity(0.08)
-                        : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isCorrect
-                          ? const Color(0xFF10B981).withOpacity(0.3)
-                          : const Color(0xFFE2E8F0),
-                      width: isCorrect ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: isCorrect
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFF94A3B8),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Center(
-                          child: Text(
-                            String.fromCharCode(65 + optionIndex),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          option,
-                          style: TextStyle(
-                            color: isCorrect
-                                ? const Color(0xFF047857)
-                                : const Color(0xFF374151),
-                            fontWeight: isCorrect
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            height: 1.3,
-                          ),
-                        ),
-                      ),
-                      if (isCorrect)
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Icon(
-                            Icons.check_rounded,
-                            color: Color(0xFF047857),
-                            size: 16,
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ],
-          ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _buildFloatingActionButton() {
-    return Obx(() {
-      // Only show the button if testQuestions is empty
-      if (controller.testQuestions.isEmpty) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-            ),
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF667EEA).withOpacity(0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: FloatingActionButton.extended(
-            onPressed: () => _showCreateQuestionScreen(Get.context!),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            icon: const Icon(Icons.add_rounded, color: Colors.white),
-            label: const Text(
-              'New Question',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        );
-      } else {
-        // Return an empty SizedBox when testQuestions is not empty
-        return const SizedBox.shrink();
-      }
-    });
-  }
-
-  void _showCreateQuestionScreen(BuildContext context) {
-    controller.clearForm();
-    Get.to(() => AddEditCourseTestScreen(courseId: course.id));
-  }
-
-  void _showEditQuestionScreen(BuildContext context, CourseTestModel question) {
-    controller.populateFormWithQuestion(question);
-    Get.to(
-      () =>
-          AddEditCourseTestScreen(courseId: course.id, testQuestion: question),
     );
   }
 

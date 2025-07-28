@@ -778,7 +778,7 @@ class _AddEditCourseTestScreenState extends State<AddEditCourseTestScreen> {
 
     bool success;
     if (isEditMode) {
-      success = await controller.updateTestQuestion(widget.testQuestion!.id!);
+      success = await controller.updateTestQuestion(widget.testQuestion!.id);
     } else {
       success = await controller.createTestQuestion(optionsList: optionsList);
     }

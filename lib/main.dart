@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 
 import 'core/theme/app_themes.dart';
 import 'core/theme/configure_system.dart';
-import 'feature/services/splash_screen.dart';
+import 'splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

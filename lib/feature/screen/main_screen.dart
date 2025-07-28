@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:badges/badges.dart' as badge;
 import '../controller/auth/login_controller.dart';
 import '../controller/course/course_review_controller.dart';
+import '../controller/miscalleneous/notification_controller.dart';
 import '../model/auth/user_model.dart';
 import 'AI/chat_AI_screen.dart';
+import 'Notification.dart/notification_screen.dart';
+import 'admin/fetch_course_test.dart';
 import 'admin/user_management.dart';
 import 'auth/login_screen.dart';
 import 'auth/update_profile.dart';
 import 'courses/course test/fetch_course.dart';
 import 'courses/get_course.dart';
 import 'courses/review/show_review.dart';
+import 'setting/notification_setting.dart';
 import 'teacher/teacher_course.dart';
 
 // Main Screen with Bottom Navigation
@@ -22,6 +26,9 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final LoginController loginController = Get.find<LoginController>();
+  final NotificationController notificationController = Get.put(
+    NotificationController(),
+  );
 
   // Get role-specific data using reactive user
   String getRoleTitle(UserModel? user) {
@@ -71,27 +78,40 @@ class _MainScreenState extends State<MainScreen> {
         ),
         drawer: _buildDrawer(user, roleColor),
         body: _getBodyForIndex(_currentIndex, user, roleColor),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          selectedItemColor: roleColor,
-          type: BottomNavigationBarType.fixed,
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.notifications),
-              label: 'Notifications',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-          ],
-        ),
+        bottomNavigationBar: Obx(() {
+          return BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            selectedItemColor: roleColor,
+            type: BottomNavigationBarType.fixed,
+            items: [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(
+                icon: badge.Badge(
+                  badgeContent: Text(
+                    notificationController.unreadCount.value.toString(),
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                  showBadge: notificationController.unreadCount.value > 0,
+                  badgeStyle: badge.BadgeStyle(
+                    badgeColor: Colors.red,
+                    padding: EdgeInsets.all(6),
+                  ),
+                  child: Icon(Icons.notifications),
+                ),
+                label: 'Notifications',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+          );
+        }),
       );
     });
   }
@@ -101,7 +121,7 @@ class _MainScreenState extends State<MainScreen> {
       case 0:
         return _buildHomeScreen(user, roleColor);
       case 1:
-        return _buildNotificationScreen(user, roleColor);
+        return NotificationScreen(user: user, roleColor: roleColor);
       case 2:
         return _buildSettingsScreen(user, roleColor);
       default:
@@ -123,7 +143,6 @@ class _MainScreenState extends State<MainScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 20),
-              // Welcome message with user name
               Text(
                 'Welcome ${user.name ?? 'User'}!',
                 style: TextStyle(
@@ -132,15 +151,7 @@ class _MainScreenState extends State<MainScreen> {
                   color: roleColor,
                 ),
               ),
-              // SizedBox(height: 30),
-              // Role-specific welcome message
-              // Text(
-              //   getWelcomeMessage(user),
-              //   style: TextStyle(fontSize: 18, color: Colors.grey[700]),
-              //   textAlign: TextAlign.center,
-              // ),
               SizedBox(height: 20),
-              // Role-specific content
               _buildRoleSpecificContent(user),
             ],
           ),
@@ -173,13 +184,6 @@ class _MainScreenState extends State<MainScreen> {
           color: Colors.blue,
           onTap: () => Get.to(() => CourseScreen()),
         ),
-        // SizedBox(height: 16),
-        // _buildDashboardCard(
-        //   icon: Icons.grade,
-        //   title: 'Grades',
-        //   subtitle: 'View your academic progress',
-        //   color: Colors.green,
-        // ),
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.reviews,
@@ -236,17 +240,6 @@ class _MainScreenState extends State<MainScreen> {
             Get.to(() => TeacherCourseScreen());
           },
         ),
-
-        // _buildDashboardCard(
-        //   icon: Icons.fact_check,
-        //   title: 'Test Question',
-        //   subtitle: 'Manage your Test question',
-        //   color: Colors.red,
-        //   onTap: () {
-        //     Get.to(() => LessonTestQuestionScreen());
-        //   },
-        // ),
-        // SizedBox(height: 16),
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.reviews,
@@ -285,13 +278,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildAdminContent() {
     return Column(
       children: [
-        // _buildDashboardCard(
-        //   icon: Icons.dashboard,
-        //   title: 'System Overview',
-        //   subtitle: 'View system statistics',
-        //   color: Colors.purple,
-        // ),
-        // SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.manage_accounts,
           title: 'User Management',
@@ -300,14 +286,6 @@ class _MainScreenState extends State<MainScreen> {
           onTap: () => Get.to(() => UserManagementScreen()),
         ),
         SizedBox(height: 16),
-        // _buildDashboardCard(
-        //   icon: Icons.settings_applications,
-        //   title: 'System Settings',
-        //   subtitle: 'Configure system preferences',
-        //   color: Colors.indigo,
-        //   // onTap: () => Get.to(() => SettingsScreen()),
-        // ),
-        // SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.person,
           title: 'Profile Settings',
@@ -315,14 +293,13 @@ class _MainScreenState extends State<MainScreen> {
           color: Colors.indigo,
           onTap: () => Get.to(() => ProfileScreen()),
         ),
-
         SizedBox(height: 16),
         _buildDashboardCard(
           icon: Icons.quiz,
           title: 'Course Test',
           subtitle: 'View Course Test',
           color: Colors.amber,
-          onTap: () => Get.to(() => FetchCourseScreen()),
+          onTap: () => Get.to(() => AdminCourseScreen()),
         ),
       ],
     );
@@ -361,53 +338,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNotificationScreen(UserModel? user, Color roleColor) {
-    if (user == null) {
-      return Center(child: CircularProgressIndicator());
-    }
-
-    return Container(
-      padding: EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Text(
-            'Notifications',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: roleColor,
-            ),
-          ),
-          SizedBox(height: 20),
-          Expanded(
-            child: ListView.builder(
-              itemCount: 5, // Demo notifications
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: roleColor.withOpacity(0.2),
-                      child: Icon(Icons.notifications, color: roleColor),
-                    ),
-                    title: Text('Notification ${index + 1}'),
-                    subtitle: Text(
-                      'This is a sample notification for ${user.role}',
-                    ),
-                    trailing: Text(
-                      '${index + 1}h ago',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSettingsScreen(UserModel? user, Color roleColor) {
     if (user == null) {
       return Center(child: CircularProgressIndicator());
@@ -432,30 +362,12 @@ class _MainScreenState extends State<MainScreen> {
             subtitle: 'Manage your profile information',
             roleColor: roleColor,
           ),
-          // _buildSettingsItem(
-          //   icon: Icons.security,
-          //   title: 'Security',
-          //   subtitle: 'Change password and security settings',
-          //   roleColor: roleColor,
-          // ),
           _buildSettingsItem(
             icon: Icons.notifications_outlined,
             title: 'Notification Preferences',
             subtitle: 'Manage notification settings',
             roleColor: roleColor,
           ),
-          // _buildSettingsItem(
-          //   icon: Icons.dark_mode,
-          //   title: 'Theme',
-          //   subtitle: 'Choose your preferred theme',
-          //   roleColor: roleColor,
-          // ),
-          // _buildSettingsItem(
-          //   icon: Icons.language,
-          //   title: 'Language',
-          //   subtitle: 'Select your language',
-          //   roleColor: roleColor,
-          // ),
           _buildSettingsItem(
             icon: Icons.logout,
             title: 'Logout',
@@ -499,8 +411,9 @@ class _MainScreenState extends State<MainScreen> {
           } else {
             if (title == 'Profile') {
               Get.to(() => ProfileScreen());
+            } else if (title == 'Notification Preferences') {
+              Get.to(() => NotificationPreferencesScreen());
             } else {
-              // Handle other settings navigation
               Get.snackbar(
                 'Info',
                 'Navigate to $title settings',
@@ -539,7 +452,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.home),
+            leading: Icon(Icons.home, color: roleColor),
             title: Text('Home'),
             onTap: () {
               setState(() {
@@ -549,7 +462,7 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.person),
+            leading: Icon(Icons.person, color: roleColor),
             title: Text('Profile'),
             onTap: () {
               Navigator.pop(context);
@@ -557,7 +470,7 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.help),
+            leading: Icon(Icons.help, color: roleColor),
             title: Text('Help & Support'),
             onTap: () {
               Navigator.pop(context);
@@ -588,14 +501,9 @@ class _MainScreenState extends State<MainScreen> {
           TextButton(
             onPressed: () {
               Get.back();
-              // Clear user data and reset controller state
               loginController.resetState();
-
-              // Delete both UserModel and LoginController from memory
               Get.delete<UserModel>();
               Get.delete<LoginController>();
-
-              // Navigate to login screen
               Get.offAll(() => LoginScreen());
             },
             child: Text('Logout', style: TextStyle(color: Colors.red)),

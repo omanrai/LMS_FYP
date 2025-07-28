@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_fyp/feature/screen/auth/login_screen.dart';
 import 'package:get/get.dart';
 
-import '../controller/auth/login_controller.dart';
+import 'feature/controller/auth/login_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
