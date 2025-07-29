@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fyp/feature/controller/course/course_controller.dart';
+import 'package:flutter_fyp/feature/screen/courses/course%20test/course_test_quiz.dart';
 import 'package:get/get.dart';
 
 import '../../controller/miscalleneous/notification_controller.dart';
@@ -9,11 +11,8 @@ class NotificationScreen extends StatelessWidget {
   final UserModel? user;
   final Color roleColor;
 
-  const NotificationScreen({
-    Key? key,
-    required this.user,
-    required this.roleColor,
-  }) : super(key: key);
+  NotificationScreen({Key? key, required this.user, required this.roleColor})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -192,32 +191,32 @@ class NotificationScreen extends StatelessWidget {
 
   Widget _buildNotificationList(NotificationController controller) {
     // Filter notifications for current user
-     final userNotifications = controller.notifications.where((notification) {
-    return notification.recipients.contains(user?.id);
-  }).toList();
+    final userNotifications = controller.notifications.where((notification) {
+      return notification.recipients.contains(user?.id);
+    }).toList();
 
-  return RefreshIndicator(
-    onRefresh: () => controller.fetchNotifications(userId: user!.id),
-    child: ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: userNotifications.length,
-      itemBuilder: (context, index) {
-        final notification = userNotifications[index];
-        return _buildNotificationCard(notification, controller);
-      },
-    ),
-  );
-}
+    return RefreshIndicator(
+      onRefresh: () => controller.fetchNotifications(userId: user!.id),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: userNotifications.length,
+        itemBuilder: (context, index) {
+          final notification = userNotifications[index];
+          return _buildNotificationCard(notification, controller);
+        },
+      ),
+    );
+  }
 
   Widget _buildNotificationCard(
     NotificationModel notification,
     NotificationController controller,
   ) {
-  final isRead = notification.isReadByUser(user!.id);
-  final icon = _getIconForType(notification.type);
-  final color = _getColorForType(notification.type);
-  final userStatus = notification.getStatusForUser(user!.id);
-  final statusColor = _getColorForStatus(userStatus);
+    final isRead = notification.isReadByUser(user!.id);
+    final icon = _getIconForType(notification.type);
+    final color = _getColorForType(notification.type);
+    final userStatus = notification.getStatusForUser(user!.id);
+    final statusColor = _getColorForStatus(userStatus);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -236,12 +235,47 @@ class NotificationScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            // Mark notification as read if it's currently 'sent'
+          onTap: () async {
+            // Mark notification as read if it's currently unread
             if (!isRead) {
-            controller.markNotificationAsRead(notification.id, user!.id);
-          }
-        },
+              controller.markNotificationAsRead(notification.id, user!.id);
+            }
+            final CourseController courseController =
+                Get.find<CourseController>();
+            await courseController.fetchCourses();
+            // Navigate to CourseTestQuizScreen if notification has courseId
+            if (notification.data?.courseId != null &&
+                notification.data!.courseId.isNotEmpty) {
+              // Find the course that matches the notification's courseId
+              final targetCourse = courseController.courses.firstWhere(
+                (course) => course.id == notification.data!.courseId,
+                orElse: () => throw Exception('Course not found'),
+              );
+
+              // Navigate to CourseTestQuizScreen with the found course
+              try {
+                Get.to(() => CourseTestQuizScreen(course: targetCourse));
+              } catch (e) {
+                // Handle case where course is not found
+                Get.snackbar(
+                  'Error',
+                  'Course not found or not available',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                );
+              }
+            } else {
+              // Handle notifications without courseId - you can customize this behavior
+              Get.snackbar(
+                'Info',
+                'This notification doesn\'t contain course information',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.blue,
+                colorText: Colors.white,
+              );
+            }
+          },
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -281,15 +315,15 @@ class NotificationScreen extends StatelessWidget {
                                   : const Color(0xFF1E293B),
                             ),
                           ),
-                           if (notification.recipients.isNotEmpty)
-                          Text(
-                            'To: ${notification.recipients.length} recipient${notification.recipients.length > 1 ? 's' : ''}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF94A3B8),
-                              fontWeight: FontWeight.w500,
+                          if (notification.recipients.isNotEmpty)
+                            Text(
+                              'To: ${notification.recipients.length} recipient${notification.recipients.length > 1 ? 's' : ''}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -375,23 +409,33 @@ class NotificationScreen extends StatelessWidget {
                     notification.data!.courseId.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'Course: ${notification.data!.courseId}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.blue,
-                          fontWeight: FontWeight.w500,
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Course: ${notification.data!.courseId}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
-                      ),
+                        const Spacer(),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 12,
+                          color: Colors.blue.withOpacity(0.7),
+                        ),
+                      ],
                     ),
                   ),
                 if (notification.readAt != null)
