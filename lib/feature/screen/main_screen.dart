@@ -18,7 +18,6 @@ import 'setting/notification_setting.dart';
 import 'setting/password_setting.dart';
 import 'teacher/teacher_course.dart';
 
-// Main Screen with Bottom Navigation
 class MainScreen extends StatefulWidget {
   @override
   _MainScreenState createState() => _MainScreenState();
@@ -27,11 +26,22 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final LoginController loginController = Get.find<LoginController>();
-  final NotificationController notificationController = Get.put(
-    NotificationController(),
-  );
+  final NotificationController notificationController =
+      Get.put<NotificationController>(NotificationController());
 
-  // Get role-specific data using reactive user
+  @override
+  void initState() {
+    super.initState();
+    // Check for notification updates when app opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = loginController.user.value;
+      if (user != null) {
+        notificationController.fetchNotifications(userId: user.id);
+        notificationController.checkForUpdates(user.id);
+      }
+    });
+  }
+
   String getRoleTitle(UserModel? user) {
     if (user == null) return 'Dashboard';
     switch (user.role.toLowerCase()) {
@@ -62,59 +72,77 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final user = loginController.user.value;
-      final roleColor = getRoleColor(user);
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: roleColor,
-          foregroundColor: Colors.white,
-          title: Text(getRoleTitle(user)),
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: getRoleColor(loginController.user.value),
+        foregroundColor: Colors.white,
+        title: Obx(() => Text(getRoleTitle(loginController.user.value))),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        drawer: _buildDrawer(user, roleColor),
-        body: _getBodyForIndex(_currentIndex, user, roleColor),
-        bottomNavigationBar: Obx(() {
-          return BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            selectedItemColor: roleColor,
-            type: BottomNavigationBarType.fixed,
-            items: [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(
-                icon: badge.Badge(
+      ),
+      drawer: Obx(
+        () => _buildDrawer(
+          loginController.user.value,
+          getRoleColor(loginController.user.value),
+        ),
+      ),
+      body: Obx(
+        () => _getBodyForIndex(
+          _currentIndex,
+          loginController.user.value,
+          getRoleColor(loginController.user.value),
+        ),
+      ),
+
+      // Only showing the relevant badge part of MainScreen
+      bottomNavigationBar: Obx(() {
+        final user = loginController.user.value;
+        return BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          selectedItemColor: getRoleColor(user),
+          type: BottomNavigationBarType.fixed,
+          items: [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(
+              icon: Obx(
+                () => badge.Badge(
                   badgeContent: Text(
-                    notificationController.unreadCount.value.toString(),
+                    user != null
+                        ? notificationController
+                              .getUnreadCountForUser(user.id)
+                              .toString()
+                        : '0',
                     style: TextStyle(color: Colors.white, fontSize: 12),
                   ),
-                  showBadge: notificationController.unreadCount.value > 0,
+                  showBadge:
+                      user != null &&
+                      notificationController.getUnreadCountForUser(user.id) > 0,
                   badgeStyle: badge.BadgeStyle(
                     badgeColor: Colors.red,
                     padding: EdgeInsets.all(6),
                   ),
                   child: Icon(Icons.notifications),
                 ),
-                label: 'Notifications',
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
-                label: 'Settings',
-              ),
-            ],
-          );
-        }),
-      );
-    });
+              label: 'Notifications',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+        );
+      }),
+    );
   }
 
   Widget _getBodyForIndex(int index, UserModel? user, Color roleColor) {
@@ -513,7 +541,7 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Get.back();
               loginController.resetState();
               Get.delete<UserModel>();

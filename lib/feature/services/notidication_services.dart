@@ -147,6 +147,8 @@ class NotificationService {
     String status = 'sent',
   }) async {
     try {
+    
+
       // Check internet connection
       if (!await ConnectivityService.hasInternetConnection()) {
         return ApiResponse<NotificationModel>(
@@ -329,62 +331,6 @@ class NotificationService {
     }
   }
 
-  // Delete a notification
-  static Future<ApiResponse<bool>> deleteNotification(
-    String notificationId,
-  ) async {
-    try {
-      log('Deleting notification: $notificationId');
-
-      // Check internet connection
-      if (!await ConnectivityService.hasInternetConnection()) {
-        return ApiResponse<bool>(
-          success: false,
-          message: 'No internet connection. Please check your network.',
-        );
-      }
-
-      // Initialize Dio if not already done
-      NotificationService()._initializeDio();
-
-      // Validate required fields
-      if (notificationId.isEmpty) {
-        return ApiResponse<bool>(
-          success: false,
-          message: 'Notification ID is required.',
-        );
-      }
-
-      final response = await _dio.delete(
-        '$notificationEndpoint/$notificationId',
-        options: Options(contentType: 'application/json'),
-      );
-
-      // Handle successful response
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        log('Notification deleted successfully: $notificationId');
-
-        return ApiResponse<bool>(
-          success: true,
-          message: 'Notification deleted successfully',
-          data: true,
-          statusCode: response.statusCode,
-        );
-      } else {
-        return _handleErrorResponse(response);
-      }
-    } on DioException catch (e) {
-      log('DioException in deleteNotification: ${e.message}');
-      return _handleDioError(e);
-    } catch (e) {
-      log('Unexpected error in deleteNotification: $e');
-      return ApiResponse<bool>(
-        success: false,
-        message:
-            'An unexpected error occurred while deleting notification: ${e.toString()}',
-      );
-    }
-  }
 
   // Get count of unread notifications
   static Future<ApiResponse<int>> getUnreadNotificationCount() async {

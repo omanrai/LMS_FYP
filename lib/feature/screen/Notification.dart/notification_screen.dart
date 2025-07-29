@@ -30,28 +30,6 @@ class NotificationScreen extends StatelessWidget {
           'Notifications',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        actions: [
-          Obx(() {
-            if (notificationController.unreadCount.value > 0) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: TextButton(
-                  onPressed: () =>
-                      notificationController.markAllNotificationsAsRead(),
-                  child: Text(
-                    'Mark All as Read',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
-        ],
       ),
       body: Obx(() {
         if (notificationController.isLoading.value) {
@@ -62,7 +40,11 @@ class NotificationScreen extends StatelessWidget {
           return _buildErrorState(notificationController);
         }
 
-        if (notificationController.notifications.isEmpty) {
+        if (notificationController.notifications.where((notification) {
+          return notification.recipients.any(
+            (recipient) => recipient.id == user?.id,
+          );
+        }).isEmpty) {
           return _buildEmptyState();
         }
 
@@ -134,7 +116,7 @@ class NotificationScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: controller.fetchNotifications,
+              onPressed: () => controller.fetchNotifications(userId: user!.id),
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
@@ -209,26 +191,33 @@ class NotificationScreen extends StatelessWidget {
   }
 
   Widget _buildNotificationList(NotificationController controller) {
-    return RefreshIndicator(
-      onRefresh: controller.fetchNotifications,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: controller.notifications.length,
-        itemBuilder: (context, index) {
-          final notification = controller.notifications[index];
-          return _buildNotificationCard(notification, controller);
-        },
-      ),
-    );
-  }
+    // Filter notifications for current user
+     final userNotifications = controller.notifications.where((notification) {
+    return notification.recipients.contains(user?.id);
+  }).toList();
+
+  return RefreshIndicator(
+    onRefresh: () => controller.fetchNotifications(userId: user!.id),
+    child: ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: userNotifications.length,
+      itemBuilder: (context, index) {
+        final notification = userNotifications[index];
+        return _buildNotificationCard(notification, controller);
+      },
+    ),
+  );
+}
 
   Widget _buildNotificationCard(
     NotificationModel notification,
     NotificationController controller,
   ) {
-    final isRead = notification.isRead;
-    final icon = _getIconForType(notification.type);
-    final color = _getColorForType(notification.type);
+  final isRead = notification.isReadByUser(user!.id);
+  final icon = _getIconForType(notification.type);
+  final color = _getColorForType(notification.type);
+  final userStatus = notification.getStatusForUser(user!.id);
+  final statusColor = _getColorForStatus(userStatus);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -248,10 +237,11 @@ class NotificationScreen extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
+            // Mark notification as read if it's currently 'sent'
             if (!isRead) {
-              controller.markNotificationAsRead(notification.id);
-            }
-          },
+            controller.markNotificationAsRead(notification.id, user!.id);
+          }
+        },
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -278,29 +268,67 @@ class NotificationScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        notification.title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: isRead
-                              ? const Color(0xFF64748B)
-                              : const Color(0xFF1E293B),
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            notification.title,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isRead
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFF1E293B),
+                            ),
+                          ),
+                           if (notification.recipients.isNotEmpty)
+                          Text(
+                            'To: ${notification.recipients.length} recipient${notification.recipients.length > 1 ? 's' : ''}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF94A3B8),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    if (!isRead)
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (!isRead)
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            notification.status.toJsonString.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: statusColor,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   notification.body,
                   style: TextStyle(
@@ -313,7 +341,6 @@ class NotificationScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -333,6 +360,7 @@ class NotificationScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const Spacer(),
                     Text(
                       _formatDateTime(notification.createdAt),
                       style: const TextStyle(
@@ -347,13 +375,66 @@ class NotificationScreen extends StatelessWidget {
                     notification.data!.courseId.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Course: ${notification.data!.courseId}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (notification.readAt != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      'Course ID: ${notification.data!.courseId}',
+                      'Read On: ${_formatDateTime(notification.readAt!)}',
                       style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
+                        fontSize: 11,
+                        color: Color(0xFF94A3B8),
                         fontWeight: FontWeight.w500,
                       ),
+                    ),
+                  ),
+                // Show first few recipients if available
+                if (notification.recipients.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Wrap(
+                      spacing: 6,
+                      children: notification.recipients
+                          .take(3)
+                          .map(
+                            (recipient) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                recipient.name,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ),
               ],
@@ -393,6 +474,21 @@ class NotificationScreen extends StatelessWidget {
         return Colors.red;
       case 'test':
         return Colors.amber;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _getColorForStatus(NotificationStatus status) {
+    switch (status) {
+      case NotificationStatus.delivered:
+        return Colors.green;
+      case NotificationStatus.failed:
+        return Colors.red;
+      case NotificationStatus.read:
+        return Colors.blue;
+      case NotificationStatus.sent:
+        return Colors.orange;
       default:
         return Colors.grey;
     }

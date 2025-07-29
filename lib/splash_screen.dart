@@ -207,7 +207,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
 
-              // Powered by section
+              // Developed by section
               Expanded(
                 flex: 1,
                 child: SlideTransition(
@@ -218,7 +218,7 @@ class _SplashScreenState extends State<SplashScreen>
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          'Powered by',
+                          'Developed by',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withOpacity(0.7),
@@ -249,7 +249,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               const SizedBox(width: 8),
                               const Text(
-                                'Saino Tech',
+                                'IIC College',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
