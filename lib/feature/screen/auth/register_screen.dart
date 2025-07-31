@@ -9,7 +9,7 @@ import '../../controller/auth/register_controller.dart';
 class RegistrationScreen extends StatelessWidget {
   final RegistrationController controller = Get.put(RegistrationController());
 
-  RegistrationScreen({Key? key}) : super(key: key);
+  RegistrationScreen({super.key});
 
   Future<void> _pickImage() async {
     final File? selectedFile = await ImagePickerUtils.pickImageFromGallery(

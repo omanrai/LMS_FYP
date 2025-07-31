@@ -536,6 +536,8 @@ import '../../controller/chat/AI_controller.dart';
 class ChatWithAIScreen extends StatelessWidget {
   final ChatAIController controller = Get.put(ChatAIController());
 
+  ChatWithAIScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

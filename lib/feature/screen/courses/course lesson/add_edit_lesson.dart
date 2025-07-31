@@ -12,8 +12,7 @@ class AddEditLessonScreen extends StatefulWidget {
   final CourseModel course;
   final CourseLessonModel? lesson; // Null for add, non-null for edit
 
-  const AddEditLessonScreen({Key? key, required this.course, this.lesson})
-    : super(key: key);
+  const AddEditLessonScreen({super.key, required this.course, this.lesson});
 
   @override
   State<AddEditLessonScreen> createState() => _AddEditLessonScreenState();

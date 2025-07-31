@@ -5,7 +5,7 @@ import '../../controller/auth/admin_controller.dart';
 import '../../model/auth/user_model.dart';
 
 class UserManagementScreen extends StatelessWidget {
-  UserManagementScreen({Key? key}) : super(key: key);
+  UserManagementScreen({super.key});
 
   final UserManagementController controller = Get.put(
     UserManagementController(),

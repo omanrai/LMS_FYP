@@ -8,10 +8,10 @@ class SecuritySettingsScreen extends StatelessWidget {
   final Color roleColor;
 
   const SecuritySettingsScreen({
-    Key? key,
+    super.key,
     required this.user,
     required this.roleColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

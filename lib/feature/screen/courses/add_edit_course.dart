@@ -12,10 +12,10 @@ class AddEditCourseScreen extends StatefulWidget {
   final bool isEditMode; // Flag to determine if we're editing or adding
 
   const AddEditCourseScreen({
-    Key? key,
+    super.key,
     this.course, // Optional now
     this.isEditMode = true, // Default to edit mode for backward compatibility
-  }) : super(key: key);
+  });
 
   @override
   State<AddEditCourseScreen> createState() => _AddEditCourseScreenState();

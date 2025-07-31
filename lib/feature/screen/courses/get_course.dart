@@ -13,7 +13,7 @@ import 'add_edit_course.dart';
 import 'view_course.dart';
 
 class CourseScreen extends StatefulWidget {
-  const CourseScreen({Key? key}) : super(key: key);
+  const CourseScreen({super.key});
 
   @override
   State<CourseScreen> createState() => _CourseScreenState();

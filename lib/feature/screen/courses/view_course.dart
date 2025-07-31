@@ -19,8 +19,7 @@ import 'review/review_tab.dart';
 class ViewCourseScreen extends StatefulWidget {
   final CourseModel course;
   final EnrollmentModel? enrollment;
-  const ViewCourseScreen({Key? key, required this.course, this.enrollment})
-    : super(key: key);
+  const ViewCourseScreen({super.key, required this.course, this.enrollment});
 
   @override
   State<ViewCourseScreen> createState() => _ViewCourseScreenState();
@@ -36,7 +35,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
     CourseReviewController(),
   );
 
-    final EnrollmentController enrollmentController = Get.put(
+  final EnrollmentController enrollmentController = Get.put(
     EnrollmentController(),
   );
 
@@ -53,7 +52,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       _currentTabIndex.value = _tabController.index;
     });
@@ -291,7 +290,10 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
         _buildStatItem(
           icon: Icons.people_outline,
           label: 'Students',
-          value: EnrollmentModel.countApprovedEnrollments(enrollmentController.courseEnrollments, widget.course.id).toString(),
+          value: EnrollmentModel.countApprovedEnrollments(
+            enrollmentController.courseEnrollments,
+            widget.course.id,
+          ).toString(),
           color: const Color(0xFF3B82F6),
         ),
         _buildStatItem(
@@ -714,11 +716,11 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => groupChatController.loadMessages(),
-                      child: const Text('Retry'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF6366F1),
                         foregroundColor: Colors.white,
                       ),
+                      child: const Text('Retry'),
                     ),
                   ],
                 ),
@@ -804,7 +806,7 @@ class _ViewCourseScreenState extends State<ViewCourseScreen>
                           ? () => groupChatController.sendMessage()
                           : null,
                       borderRadius: BorderRadius.circular(24),
-                      child: Container(
+                      child: SizedBox(
                         width: 48,
                         height: 48,
                         child: groupChatController.isSending

@@ -256,7 +256,7 @@ class NotificationModel {
       (status) => status.userId == userId,
       orElse: () => UserNotificationStatus(
         userId: userId,
-        status: this.status, // Fall back to general status
+        status: status, // Fall back to general status
         id: '',
       ),
     );

@@ -11,8 +11,7 @@ class NotificationScreen extends StatefulWidget {
   final UserModel? user;
   final Color roleColor;
 
-  NotificationScreen({Key? key, required this.user, required this.roleColor})
-    : super(key: key);
+  const NotificationScreen({super.key, required this.user, required this.roleColor});
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();

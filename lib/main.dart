@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_fyp/feature/screen/auth/login_screen.dart';
 import 'package:get/get.dart';
 
 import 'core/theme/app_themes.dart';

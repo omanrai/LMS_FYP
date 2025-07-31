@@ -7,8 +7,7 @@ class AddEditCourseTestScreen extends StatefulWidget {
   final String? courseId;
   final CourseTestModel? testQuestion;
 
-  const AddEditCourseTestScreen({Key? key, this.courseId, this.testQuestion})
-    : super(key: key);
+  const AddEditCourseTestScreen({super.key, this.courseId, this.testQuestion});
 
   @override
   _AddEditCourseTestScreenState createState() =>

@@ -9,8 +9,7 @@ import '../../model/course/enrollment_model.dart';
 class ManageEnrollmentCourseScreen extends StatefulWidget {
   final CourseModel course;
 
-  const ManageEnrollmentCourseScreen({Key? key, required this.course})
-    : super(key: key);
+  const ManageEnrollmentCourseScreen({super.key, required this.course});
 
   @override
   State<ManageEnrollmentCourseScreen> createState() =>
@@ -646,7 +645,7 @@ class _ManageEnrollmentCourseScreenState
     final confirmed = await DialogUtils.showConfirmDialog(
       title: '${action.capitalize} Enrollment',
       message:
-          'Are you sure you want to ${action} ${enrollment.studentId.name}\'s enrollment?',
+          'Are you sure you want to $action ${enrollment.studentId.name}\'s enrollment?',
       confirmText: action.capitalize ?? action,
       cancelText: 'Cancel',
       icon: action == 'approve' ? Icons.check_circle : Icons.cancel,

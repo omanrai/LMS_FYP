@@ -78,6 +78,8 @@ class NotificationPreferencesScreen extends StatelessWidget {
     NotificationPreferencesController(),
   );
 
+  NotificationPreferencesScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -246,7 +248,7 @@ class NotificationPreferencesScreen extends StatelessWidget {
               SizedBox(height: 24),
 
               // Save Button
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {

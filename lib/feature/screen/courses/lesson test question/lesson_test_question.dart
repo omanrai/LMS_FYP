@@ -12,7 +12,7 @@ class LessonTestQuestionScreen extends StatelessWidget {
   );
   final CourseLessonModel lesson = Get.arguments as CourseLessonModel;
 
-  LessonTestQuestionScreen({Key? key}) : super(key: key);
+  LessonTestQuestionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +108,7 @@ class LessonTestQuestionScreen extends StatelessWidget {
         children: [
           Center(
             child: Text(
-              'Lesson Name : ${title}',
+              'Lesson Name : $title',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -622,7 +622,7 @@ class LessonTestQuestionScreen extends StatelessWidget {
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                   if (testQuestion.createdAt != null)
                     Container(
                       padding: const EdgeInsets.all(12),

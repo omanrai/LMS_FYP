@@ -9,7 +9,7 @@ import '../../model/course/enrollment_model.dart';
 import 'manage_enrollment_course.dart';
 
 class TeacherCourseScreen extends StatefulWidget {
-  const TeacherCourseScreen({Key? key}) : super(key: key);
+  const TeacherCourseScreen({super.key});
 
   @override
   State<TeacherCourseScreen> createState() => _TeacherCourseScreenState();
@@ -42,6 +42,7 @@ class _TeacherCourseScreenState extends State<TeacherCourseScreen> {
     courseController.fetchCourses();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -128,7 +129,7 @@ class _TeacherCourseScreenState extends State<TeacherCourseScreen> {
           statsEnrollments = enrollmentController.teacherEnrollments
               .where(
                 (enrollment) =>
-                    enrollment.status?.toLowerCase() ==
+                    enrollment.status.toLowerCase() ==
                     selectedStatus.toLowerCase(),
               )
               .toList();
@@ -236,7 +237,7 @@ class _TeacherCourseScreenState extends State<TeacherCourseScreen> {
           filteredEnrollments = enrollmentController.teacherEnrollments
               .where(
                 (enrollment) =>
-                    enrollment.status?.toLowerCase() ==
+                    enrollment.status.toLowerCase() ==
                     selectedStatus.toLowerCase(),
               )
               .toList();
@@ -327,7 +328,7 @@ class _TeacherCourseScreenState extends State<TeacherCourseScreen> {
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                 ),
-                child: Container(
+                child: SizedBox(
                   width: double.infinity,
                   child: Image.network(
                     '${course.coverImage}',

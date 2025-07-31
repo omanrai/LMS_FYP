@@ -8,7 +8,7 @@ import '../../controller/auth/login_controller.dart';
 class ProfileScreen extends StatelessWidget {
   final LoginController controller = Get.find<LoginController>();
 
-  ProfileScreen({Key? key}) : super(key: key);
+  ProfileScreen({super.key});
 
   Future<void> _pickImage() async {
     final File? selectedFile = await ImagePickerUtils.pickImageFromGallery(
