@@ -10,7 +10,7 @@ import '../../../model/course/course_model.dart';
 class EditCourseScreen extends StatefulWidget {
   final CourseModel course;
 
-  const EditCourseScreen({Key? key, required this.course}) : super(key: key);
+  const EditCourseScreen({super.key, required this.course});
 
   @override
   State<EditCourseScreen> createState() => _EditCourseScreenState();

@@ -5,7 +5,7 @@ import '../../../model/course/course_lesson_model.dart';
 import '../../../model/course/lesson_test_question_model.dart';
 
 class LessonTestQuizScreen extends StatefulWidget {
-  const LessonTestQuizScreen({Key? key}) : super(key: key);
+  const LessonTestQuizScreen({super.key});
 
   @override
   State<LessonTestQuizScreen> createState() => _LessonTestQuizScreenState();

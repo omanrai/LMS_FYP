@@ -11,8 +11,7 @@ class AdminCourseTestQuestionScreen extends StatelessWidget {
   final CourseTestController controller = Get.put(CourseTestController());
   // final CourseLessonModel lesson = Get.arguments as CourseLessonModel;
 
-  AdminCourseTestQuestionScreen({Key? key, required this.course})
-    : super(key: key);
+  AdminCourseTestQuestionScreen({super.key, required this.course});
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +105,7 @@ class AdminCourseTestQuestionScreen extends StatelessWidget {
         children: [
           Center(
             child: Text(
-              'Course Name : ${title}',
+              'Course Name : $title',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -548,7 +547,7 @@ class AdminCourseTestQuestionScreen extends StatelessWidget {
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                   if (testQuestion.createdAt != null)
                     Container(
                       padding: const EdgeInsets.all(12),

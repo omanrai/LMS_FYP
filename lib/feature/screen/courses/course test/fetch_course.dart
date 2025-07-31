@@ -13,7 +13,7 @@ import 'course_test_quiz.dart';
 import 'course_test_screen.dart';
 
 class FetchCourseScreen extends StatefulWidget {
-  const FetchCourseScreen({Key? key}) : super(key: key);
+  const FetchCourseScreen({super.key});
 
   @override
   State<FetchCourseScreen> createState() => _FetchCourseScreenState();
@@ -562,9 +562,7 @@ class _FetchCourseScreenState extends State<FetchCourseScreen> {
   }
 
   Widget _buildCourseCard(
-    CourseModel course, {
-    CourseTestModel? courseTestModel,
-  }) {
+    CourseModel course) {
     final enrollment = !isTeacher
         ? enrollmentController.getEnrollmentForCourse(course.id)
         : null;

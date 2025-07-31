@@ -21,13 +21,13 @@ class LessonsTabWidget extends StatefulWidget {
   final Function(String, double) onProgressUpdate;
 
   const LessonsTabWidget({
-    Key? key,
+    super.key,
     required this.course,
     this.enrollment,
     required this.courseLessonController,
     required this.loginController,
     required this.onProgressUpdate,
-  }) : super(key: key);
+  });
 
   @override
   State<LessonsTabWidget> createState() => _LessonsTabWidgetState();

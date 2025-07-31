@@ -1,9 +1,9 @@
+import 'package:flutter_fyp/core/utility/clear_focus.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter/services.dart';
 
 enum AIProvider { chatGPT, claude, gemini }
 
@@ -57,6 +57,8 @@ class ChatAIController extends GetxController {
     scrollController.dispose();
     super.onClose();
   }
+
+  // Fixed _showApiKeySetupDialog method and related dialog handling methods
 
   Future<void> _initializeController() async {
     try {
@@ -120,27 +122,6 @@ class ChatAIController extends GetxController {
     });
   }
 
-  // Safe snackbar method to prevent conflicts
-  void _showSnackbar(String title, String message, {Color? backgroundColor}) {
-    // Close any existing snackbar first
-    if (Get.isSnackbarOpen) {
-      Get.closeCurrentSnackbar();
-    }
-
-    // Small delay to ensure previous snackbar is fully closed
-    Future.delayed(Duration(milliseconds: 100), () {
-      Get.snackbar(
-        title,
-        message,
-        backgroundColor: backgroundColor ?? Colors.green,
-        colorText: Colors.white,
-        duration: Duration(seconds: 3),
-        margin: EdgeInsets.all(16),
-        borderRadius: 8,
-      );
-    });
-  }
-
   // Update available providers based on existing API keys
   void _updateAvailableProviders() {
     availableProviders.clear();
@@ -158,59 +139,6 @@ class ChatAIController extends GetxController {
     hasAnyApiKey.value = availableProviders.isNotEmpty;
   }
 
-  // Store API keys securely with better error handling
-  Future<void> _storeApiKeys(
-    String? openAI,
-    String? claude,
-    String? gemini,
-  ) async {
-    try {
-      // Store non-empty keys with timeout
-      if (openAI != null && openAI.isNotEmpty) {
-        await _storage
-            .write(key: 'openai_api_key', value: openAI)
-            .timeout(Duration(seconds: 5));
-        _openAIKey = openAI;
-      }
-      if (claude != null && claude.isNotEmpty) {
-        await _storage
-            .write(key: 'claude_api_key', value: claude)
-            .timeout(Duration(seconds: 5));
-        _claudeKey = claude;
-      }
-      if (gemini != null && gemini.isNotEmpty) {
-        await _storage
-            .write(key: 'gemini_api_key', value: gemini)
-            .timeout(Duration(seconds: 5));
-        _geminiKey = gemini;
-      }
-
-      _updateAvailableProviders();
-
-      // Set default provider to first available one
-      if (availableProviders.isNotEmpty) {
-        selectedProvider.value = availableProviders.first;
-      }
-
-      // Add welcome message if this is the first time
-      if (messages.isEmpty) {
-        _addWelcomeMessage();
-      }
-
-      _showSnackbar(
-        'Success',
-        'API keys saved successfully! Available providers: ${availableProviders.length}',
-      );
-    } catch (e) {
-      print('Error storing API keys: $e');
-      _showSnackbar(
-        'Error',
-        'Failed to save API keys. Please try again.',
-        backgroundColor: Colors.red,
-      );
-    }
-  }
-
   void _showApiKeySetupDialog() {
     final openAIController = TextEditingController();
     final claudeController = TextEditingController();
@@ -224,8 +152,8 @@ class ChatAIController extends GetxController {
     Get.dialog(
       WillPopScope(
         onWillPop: () async {
-          return hasAnyApiKey.value;
-        }, // Only allow back if keys exist
+          return hasAnyApiKey.value; // Only allow back if keys exist
+        },
         child: AlertDialog(
           title: Text('Setup API Keys'),
           content: SingleChildScrollView(
@@ -285,18 +213,18 @@ class ChatAIController extends GetxController {
             ),
           ),
           actions: [
-            // Always show both buttons in the same row
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () => _safeDialogClose(),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.grey[600]),
+                if (hasAnyApiKey.value) // Only show cancel if keys exist
+                  TextButton(
+                    onPressed: () => Get.back(),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
                   ),
-                ),
-                SizedBox(width: 8),
+                if (hasAnyApiKey.value) SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () async {
                     final openAI = openAIController.text.trim();
@@ -313,17 +241,26 @@ class ChatAIController extends GetxController {
                       return;
                     }
 
-                    // Show loading dialog safely
+                    // Close current dialog first
+                    Get.back();
+
+                    // Show loading dialog
                     _showLoadingDialog();
 
-                    await _storeApiKeys(
-                      openAI.isEmpty ? null : openAI,
-                      claude.isEmpty ? null : claude,
-                      gemini.isEmpty ? null : gemini,
-                    );
-
-                    // Close dialogs safely
-                    await _safeCloseAllDialogs();
+                    try {
+                      await _storeApiKeys(
+                        openAI.isEmpty ? null : openAI,
+                        claude.isEmpty ? null : claude,
+                        gemini.isEmpty ? null : gemini,
+                      );
+                    } catch (e) {
+                      print('Error saving keys: $e');
+                    } finally {
+                      // Close loading dialog
+                      if (Get.isDialogOpen ?? false) {
+                        Get.back();
+                      }
+                    }
                   },
                   child: Text('Save Keys'),
                 ),
@@ -336,7 +273,7 @@ class ChatAIController extends GetxController {
     );
   }
 
-  // Safe dialog closing methods
+  // Simplified loading dialog
   void _showLoadingDialog() {
     Get.dialog(
       Center(
@@ -360,29 +297,87 @@ class ChatAIController extends GetxController {
     );
   }
 
-  void _safeDialogClose() {
-    if (Get.isDialogOpen ?? false) {
-      Get.back();
+  // Simplified _storeApiKeys method - remove complex dialog closing
+  Future<void> _storeApiKeys(
+    String? openAI,
+    String? claude,
+    String? gemini,
+  ) async {
+    try {
+      // Store non-empty keys with timeout
+      if (openAI != null && openAI.isNotEmpty) {
+        await _storage
+            .write(key: 'openai_api_key', value: openAI)
+            .timeout(Duration(seconds: 5));
+        _openAIKey = openAI;
+      }
+      if (claude != null && claude.isNotEmpty) {
+        await _storage
+            .write(key: 'claude_api_key', value: claude)
+            .timeout(Duration(seconds: 5));
+        _claudeKey = claude;
+      }
+      if (gemini != null && gemini.isNotEmpty) {
+        await _storage
+            .write(key: 'gemini_api_key', value: gemini)
+            .timeout(Duration(seconds: 5));
+        _geminiKey = gemini;
+      }
+
+      _updateAvailableProviders();
+
+      // Set default provider to first available one
+      if (availableProviders.isNotEmpty) {
+        selectedProvider.value = availableProviders.first;
+      }
+
+      // Add welcome message if this is the first time
+      if (messages.isEmpty) {
+        _addWelcomeMessage();
+      }
+
+      // Show success message after a delay to ensure dialog is closed
+      Future.delayed(Duration(milliseconds: 300), () {
+        _showSnackbar(
+          'Success',
+          'API keys saved successfully! Available providers: ${availableProviders.length}',
+        );
+      });
+    } catch (e) {
+      print('Error storing API keys: $e');
+      // Show error message after a delay
+      Future.delayed(Duration(milliseconds: 300), () {
+        _showSnackbar(
+          'Error',
+          'Failed to save API keys. Please try again.',
+          backgroundColor: Colors.red,
+        );
+      });
     }
   }
 
-  Future<void> _safeCloseAllDialogs() async {
-    // Close any existing snackbars first
+  // Simplified snackbar method
+  void _showSnackbar(String title, String message, {Color? backgroundColor}) {
+    // Close any existing snackbar first
     if (Get.isSnackbarOpen) {
       Get.closeCurrentSnackbar();
-      await Future.delayed(Duration(milliseconds: 100));
     }
 
-    // Close loading dialog
-    if (Get.isDialogOpen ?? false) {
-      Get.back();
-      await Future.delayed(Duration(milliseconds: 100));
-    }
-
-    // Close main dialog
-    if (Get.isDialogOpen ?? false) {
-      Get.back();
-    }
+    // Small delay to ensure previous snackbar is fully closed
+    Future.delayed(Duration(milliseconds: 200), () {
+      if (Get.context != null) {
+        // Check if context is still available
+        Get.snackbar(
+          title,
+          message,
+          backgroundColor: backgroundColor ?? Colors.green,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+          margin: EdgeInsets.all(16),
+          borderRadius: 8,
+        );
+      }
+    });
   }
 
   void _addWelcomeMessage() {
@@ -595,10 +590,16 @@ class ChatAIController extends GetxController {
     }
   }
 
+  // Updated _sendToGemini method with correct model names and error handling
+
   Future<String> _sendToGemini(String message, String apiKey) async {
+    // Use the current supported model name
+    const String modelName =
+        'gemini-1.5-flash'; // or 'gemini-2.5-flash' for newer version
+
     final response = await http.post(
       Uri.parse(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=$apiKey',
+        'https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent?key=$apiKey',
       ),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -614,21 +615,77 @@ class ChatAIController extends GetxController {
         ],
         'generationConfig': {
           'temperature': 0.7,
-          'topK': 1,
-          'topP': 1,
+          'topK': 40,
+          'topP': 0.95,
           'maxOutputTokens': 500,
         },
+        'safetySettings': [
+          {
+            'category': 'HARM_CATEGORY_HARASSMENT',
+            'threshold': 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            'category': 'HARM_CATEGORY_HATE_SPEECH',
+            'threshold': 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            'threshold': 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            'category': 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            'threshold': 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+        ],
       }),
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return data['candidates'][0]['content']['parts'][0]['text']
-          .toString()
-          .trim();
+
+      // Check if the response has candidates
+      if (data['candidates'] != null && data['candidates'].isNotEmpty) {
+        final candidate = data['candidates'][0];
+
+        // Check if content exists and has parts
+        if (candidate['content'] != null &&
+            candidate['content']['parts'] != null &&
+            candidate['content']['parts'].isNotEmpty) {
+          return candidate['content']['parts'][0]['text'].toString().trim();
+        } else {
+          throw Exception('Gemini Error: No content in response');
+        }
+      } else {
+        throw Exception('Gemini Error: No candidates in response');
+      }
     } else {
       final errorData = json.decode(response.body);
-      throw Exception('Gemini Error: ${errorData['error']['message']}');
+      String errorMessage = 'Unknown error';
+
+      // Better error handling for different error types
+      if (errorData['error'] != null) {
+        if (errorData['error']['message'] != null) {
+          errorMessage = errorData['error']['message'];
+        } else if (errorData['error']['details'] != null) {
+          errorMessage = errorData['error']['details'].toString();
+        }
+      }
+
+      // Provide more user-friendly error messages
+      if (response.statusCode == 400) {
+        if (errorMessage.contains('models/gemini-pro')) {
+          errorMessage =
+              'Model not found. Please check your API configuration.';
+        } else if (errorMessage.contains('API key')) {
+          errorMessage = 'Invalid API key. Please check your Gemini API key.';
+        }
+      } else if (response.statusCode == 403) {
+        errorMessage = 'Access denied. Please check your API key permissions.';
+      } else if (response.statusCode == 429) {
+        errorMessage = 'Rate limit exceeded. Please try again later.';
+      }
+
+      throw Exception('Gemini Error (${response.statusCode}): $errorMessage');
     }
   }
 

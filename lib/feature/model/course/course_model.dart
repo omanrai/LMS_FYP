@@ -51,7 +51,7 @@ class CourseModel {
             } else if (lessonData is Map<String, dynamic>) {
               log('Parsing Full Lesson Object: $lessonData');
               final lesson = CourseLessonModel.fromJson(
-                lessonData as Map<String, dynamic>,
+                lessonData,
               );
               parsedLessons.add(lesson);
               lessonIds.add(lesson.id);

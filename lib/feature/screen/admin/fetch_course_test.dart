@@ -9,7 +9,7 @@ import '../courses/course test/course_test_screen.dart';
 import 'view_course_test.dart';
 
 class AdminCourseScreen extends StatefulWidget {
-  const AdminCourseScreen({Key? key}) : super(key: key);
+  const AdminCourseScreen({super.key});
 
   @override
   State<AdminCourseScreen> createState() => _AdminCourseScreenState();

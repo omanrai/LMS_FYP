@@ -8,8 +8,7 @@ import 'quiz_report.dart';
 class CourseTestQuizScreen extends StatefulWidget {
   final CourseModel course;
 
-  const CourseTestQuizScreen({Key? key, required this.course})
-    : super(key: key);
+  const CourseTestQuizScreen({super.key, required this.course});
 
   @override
   State<CourseTestQuizScreen> createState() => _CourseTestQuizScreenState();

@@ -645,7 +645,7 @@ class EnrollmentController extends GetxController {
   // Helper method to get enrollments by status
   List<EnrollmentModel> getEnrollmentsByStatus(EnrollmentStatus status) {
     return _teacherEnrollments
-        .where((enrollment) => enrollment.status?.toLowerCase() == status.name)
+        .where((enrollment) => enrollment.status.toLowerCase() == status.name)
         .toList();
   }
 

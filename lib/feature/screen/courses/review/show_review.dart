@@ -5,7 +5,7 @@ import '../../../controller/course/course_review_controller.dart';
 import '../../../model/course/course_review_model.dart';
 
 class ReviewScreen extends StatefulWidget {
-  const ReviewScreen({Key? key}) : super(key: key);
+  const ReviewScreen({super.key});
 
   @override
   State<ReviewScreen> createState() => _ReviewScreenState();
@@ -208,10 +208,10 @@ class CourseReviewDetailScreen extends StatefulWidget {
   final String courseTitle;
 
   const CourseReviewDetailScreen({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.courseTitle,
-  }) : super(key: key);
+  });
 
   @override
   State<CourseReviewDetailScreen> createState() =>

@@ -15,12 +15,12 @@ class ReviewsTabWidget extends StatelessWidget {
   final LoginController loginController;
 
   const ReviewsTabWidget({
-    Key? key,
+    super.key,
     required this.course,
     this.enrollment,
     required this.courseReviewController,
     required this.loginController,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

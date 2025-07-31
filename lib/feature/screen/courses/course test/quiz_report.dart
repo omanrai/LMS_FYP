@@ -12,14 +12,14 @@ class QuizReportScreen extends StatelessWidget {
   final double progressPercentage;
 
   const QuizReportScreen({
-    Key? key,
+    super.key,
     required this.course,
     required this.testQuestions,
     required this.userAnswers,
     required this.questionResults,
     required this.correctAnswers,
     required this.progressPercentage,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +259,7 @@ class QuizReportScreen extends StatelessWidget {
             final index = entry.key;
             final question = entry.value;
             return _buildQuestionReviewCard(question, index);
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -471,7 +471,7 @@ class QuizReportScreen extends StatelessWidget {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 
                 // Answer Summary
                 if (!isCorrect) ...[

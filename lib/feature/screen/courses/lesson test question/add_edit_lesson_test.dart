@@ -9,11 +9,11 @@ class AddEditTestQuestionScreen extends StatefulWidget {
   final LessonTestQuestionModel? testQuestion;
 
   const AddEditTestQuestionScreen({
-    Key? key,
+    super.key,
     this.lessonId,
     this.lessonTitle,
     this.testQuestion,
-  }) : super(key: key);
+  });
 
   @override
   _AddEditTestQuestionScreenState createState() =>
