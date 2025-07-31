@@ -249,7 +249,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               const SizedBox(width: 8),
                               const Text(
-                                'IIC College',
+                                'David Guragain',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
