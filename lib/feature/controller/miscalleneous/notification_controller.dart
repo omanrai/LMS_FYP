@@ -17,10 +17,25 @@ class NotificationController extends GetxController {
   // Computed unread count based on user-specific status
   int getUnreadCountForUser(String userId) {
     return notifications
-        .where((notification) => 
-            notification.recipients.contains(userId) && 
-            !notification.isReadByUser(userId))
+        .where(
+          (notification) =>
+              _isUserInRecipients(notification, userId) &&
+              !notification.isReadByUser(userId),
+        )
         .length;
+  }
+
+  // Helper method to check if user is in recipients (handles both formats)
+  bool _isUserInRecipients(
+    my_model.NotificationModel notification,
+    String userId,
+  ) {
+    // Check recipient IDs first (from update API)
+    if (notification.recipientIds.isNotEmpty) {
+      return notification.recipientIds.contains(userId);
+    }
+    // Check recipient objects (from fetch API)
+    return notification.recipients.any((recipient) => recipient.id == userId);
   }
 
   @override
@@ -87,7 +102,7 @@ class NotificationController extends GetxController {
       if (response.success && response.data != null) {
         // Filter notifications where userId is in recipients
         final filteredNotifications = response.data!
-            .where((notification) => notification.recipients.contains(userId))
+            .where((notification) => _isUserInRecipients(notification, userId))
             .toList();
 
         // Create local notifications for new unread notifications
@@ -121,15 +136,14 @@ class NotificationController extends GetxController {
 
       if (response.success && response.data != null) {
         final filteredNotifications = response.data!
-            .where((notification) => notification.recipients.contains(userId))
+            .where((notification) => _isUserInRecipients(notification, userId))
             .toList();
 
         // Find new notifications
         final newNotifications = filteredNotifications
             .where(
-              (newNotif) => !notifications.any(
-                (oldNotif) => oldNotif.id == newNotif.id,
-              ),
+              (newNotif) =>
+                  !notifications.any((oldNotif) => oldNotif.id == newNotif.id),
             )
             .toList();
 
@@ -142,7 +156,9 @@ class NotificationController extends GetxController {
 
         // Update notifications list
         notifications.assignAll(filteredNotifications);
-        log('Updated notifications: ${notifications.length} total notifications');
+        log(
+          'Updated notifications: ${notifications.length} total notifications',
+        );
       }
     } catch (e) {
       log('Error checking for notification updates: $e');
@@ -150,7 +166,10 @@ class NotificationController extends GetxController {
   }
 
   // Mark notification as read by updating status to 'read' for specific user
-  Future<void> markNotificationAsRead(String notificationId, String userId) async {
+  Future<void> markNotificationAsRead(
+    String notificationId,
+    String userId,
+  ) async {
     try {
       final response = await NotificationService.updateNotificationStatus(
         notificationId,
@@ -164,18 +183,19 @@ class NotificationController extends GetxController {
           final updatedNotificationStatus = List<UserNotificationStatus>.from(
             notifications[index].notificationStatus,
           );
-          
+
           final existingStatusIndex = updatedNotificationStatus.indexWhere(
             (status) => status.userId == userId,
           );
-          
+
           if (existingStatusIndex != -1) {
             // Update existing status
-            updatedNotificationStatus[existingStatusIndex] = UserNotificationStatus(
-              userId: userId,
-              status: NotificationStatus.read,
-              id: updatedNotificationStatus[existingStatusIndex].id,
-            );
+            updatedNotificationStatus[existingStatusIndex] =
+                UserNotificationStatus(
+                  userId: userId,
+                  status: NotificationStatus.read,
+                  id: updatedNotificationStatus[existingStatusIndex].id,
+                );
           } else {
             // Add new status
             updatedNotificationStatus.add(
@@ -191,7 +211,7 @@ class NotificationController extends GetxController {
             notificationStatus: updatedNotificationStatus,
             updatedAt: DateTime.now(),
           );
-          
+
           log('Notification marked as read for user $userId: $notificationId');
         }
       } else {
@@ -226,7 +246,9 @@ class NotificationController extends GetxController {
       if (response.success && response.data != null) {
         notifications.add(response.data!);
         // Create a local notification for the new test notification
-        if (recipients.contains(Get.find<LoginController>().user.value?.id)) {
+        final currentUserId = Get.find<LoginController>().user.value?.id;
+        if (currentUserId != null &&
+            _isUserInRecipients(response.data!, currentUserId)) {
           await _createLocalNotification(response.data!);
         }
         log('Test notification created successfully');

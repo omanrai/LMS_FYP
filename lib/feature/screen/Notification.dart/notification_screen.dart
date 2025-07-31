@@ -7,7 +7,7 @@ import '../../controller/miscalleneous/notification_controller.dart';
 import '../../model/auth/user_model.dart';
 import '../../model/notification_model.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   final UserModel? user;
   final Color roleColor;
 
@@ -15,20 +15,59 @@ class NotificationScreen extends StatelessWidget {
     : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final NotificationController notificationController =
-        Get.find<NotificationController>();
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
 
+class _NotificationScreenState extends State<NotificationScreen> {
+  late NotificationController notificationController;
+
+  @override
+  void initState() {
+    super.initState();
+    notificationController = Get.find<NotificationController>();
+
+    // Fetch notifications when screen loads
+    if (widget.user?.id != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notificationController.fetchNotifications(userId: widget.user!.id);
+      });
+    }
+  }
+
+  // Helper method to check if user is in recipients (handles both formats)
+  bool _isUserInRecipients(NotificationModel notification, String userId) {
+    // Check recipient IDs first (from update API)
+    if (notification.recipientIds.isNotEmpty) {
+      return notification.recipientIds.contains(userId);
+    }
+    // Check recipient objects (from fetch API)
+    return notification.recipients.any((recipient) => recipient.id == userId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: roleColor,
+        backgroundColor: widget.roleColor,
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           'Notifications',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              if (widget.user?.id != null) {
+                notificationController.fetchNotifications(
+                  userId: widget.user!.id,
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: Obx(() {
         if (notificationController.isLoading.value) {
@@ -39,15 +78,20 @@ class NotificationScreen extends StatelessWidget {
           return _buildErrorState(notificationController);
         }
 
-        if (notificationController.notifications.where((notification) {
-          return notification.recipients.any(
-            (recipient) => recipient.id == user?.id,
-          );
-        }).isEmpty) {
+        // Filter notifications for current user using the helper method
+        final userNotifications = notificationController.notifications
+            .where(
+              (notification) =>
+                  widget.user?.id != null &&
+                  _isUserInRecipients(notification, widget.user!.id),
+            )
+            .toList();
+
+        if (userNotifications.isEmpty) {
           return _buildEmptyState();
         }
 
-        return _buildNotificationList(notificationController);
+        return _buildNotificationList(userNotifications);
       }),
     );
   }
@@ -115,7 +159,11 @@ class NotificationScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => controller.fetchNotifications(userId: user!.id),
+              onPressed: () {
+                if (widget.user?.id != null) {
+                  controller.fetchNotifications(userId: widget.user!.id);
+                }
+              },
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
@@ -189,20 +237,21 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNotificationList(NotificationController controller) {
-    // Filter notifications for current user
-    final userNotifications = controller.notifications.where((notification) {
-      return notification.recipients.contains(user?.id);
-    }).toList();
-
+  Widget _buildNotificationList(List<NotificationModel> userNotifications) {
     return RefreshIndicator(
-      onRefresh: () => controller.fetchNotifications(userId: user!.id),
+      onRefresh: () async {
+        if (widget.user?.id != null) {
+          await notificationController.fetchNotifications(
+            userId: widget.user!.id,
+          );
+        }
+      },
       child: ListView.builder(
         padding: const EdgeInsets.all(20),
         itemCount: userNotifications.length,
         itemBuilder: (context, index) {
           final notification = userNotifications[index];
-          return _buildNotificationCard(notification, controller);
+          return _buildNotificationCard(notification, notificationController);
         },
       ),
     );
@@ -212,10 +261,10 @@ class NotificationScreen extends StatelessWidget {
     NotificationModel notification,
     NotificationController controller,
   ) {
-    final isRead = notification.isReadByUser(user!.id);
+    final isRead = notification.isReadByUser(widget.user!.id);
     final icon = _getIconForType(notification.type);
     final color = _getColorForType(notification.type);
-    final userStatus = notification.getStatusForUser(user!.id);
+    final userStatus = notification.getStatusForUser(widget.user!.id);
     final statusColor = _getColorForStatus(userStatus);
 
     return Container(
@@ -238,10 +287,14 @@ class NotificationScreen extends StatelessWidget {
           onTap: () async {
             // Mark notification as read if it's currently unread
             if (!isRead) {
-              controller.markNotificationAsRead(notification.id, user!.id);
+              controller.markNotificationAsRead(
+                notification.id,
+                widget.user!.id,
+              );
             }
-            final CourseController courseController =
-                Get.find<CourseController>();
+            final CourseController courseController = Get.put(
+              CourseController(),
+            );
             await courseController.fetchCourses();
             // Navigate to CourseTestQuizScreen if notification has courseId
             if (notification.data?.courseId != null &&
@@ -315,15 +368,27 @@ class NotificationScreen extends StatelessWidget {
                                   : const Color(0xFF1E293B),
                             ),
                           ),
-                          if (notification.recipients.isNotEmpty)
-                            Text(
-                              'To: ${notification.recipients.length} recipient${notification.recipients.length > 1 ? 's' : ''}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF94A3B8),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                          // Updated recipient count logic
+                          Builder(
+                            builder: (context) {
+                              int recipientCount = 0;
+                              if (notification.recipientIds.isNotEmpty) {
+                                recipientCount =
+                                    notification.recipientIds.length;
+                              } else {
+                                recipientCount = notification.recipients.length;
+                              }
+
+                              return Text(
+                                'To: $recipientCount recipient${recipientCount > 1 ? 's' : ''}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF94A3B8),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -450,7 +515,7 @@ class NotificationScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                // Show first few recipients if available
+                // Show first few recipients if available (only for full objects)
                 if (notification.recipients.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),

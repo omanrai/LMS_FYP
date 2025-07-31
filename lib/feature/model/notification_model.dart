@@ -45,6 +45,7 @@ class NotificationRecipient {
         id: json['_id']?.toString() ?? '',
         name: json['name']?.toString() ?? '',
         email: json['email']?.toString() ?? '',
+
         image: json['image']?.toString(),
         role: json['role']?.toString() ?? '',
         isSuspended: json['isSuspended'] ?? false,
@@ -122,6 +123,8 @@ class UserNotificationStatus {
 class NotificationModel {
   final String id;
   final List<NotificationRecipient> recipients;
+  final List<String>
+  recipientIds; // Added to store recipient IDs from update API
   final String title;
   final String body;
   final NotificationData? data;
@@ -132,11 +135,12 @@ class NotificationModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int version;
-  final List<UserNotificationStatus> notificationStatus; // Added this field
+  final List<UserNotificationStatus> notificationStatus;
 
   NotificationModel({
     required this.id,
-    required this.recipients,
+    this.recipients = const [],
+    this.recipientIds = const [],
     required this.title,
     required this.body,
     this.data,
@@ -152,13 +156,29 @@ class NotificationModel {
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     try {
+      // Check if recipients is a list of objects or strings
+      List<NotificationRecipient> recipientObjects = [];
+      List<String> recipientIdList = [];
+
+      if (json['recipients'] != null) {
+        final recipientsData = json['recipients'] as List;
+        if (recipientsData.isNotEmpty) {
+          if (recipientsData.first is String) {
+            // Recipients are IDs (update API format)
+            recipientIdList = List<String>.from(recipientsData);
+          } else {
+            // Recipients are objects (fetch API format)
+            recipientObjects = recipientsData
+                .map((recipient) => NotificationRecipient.fromJson(recipient))
+                .toList();
+          }
+        }
+      }
+
       return NotificationModel(
         id: json['_id']?.toString() ?? '',
-        recipients:
-            (json['recipients'] as List?)
-                ?.map((recipient) => NotificationRecipient.fromJson(recipient))
-                .toList() ??
-            [],
+        recipients: recipientObjects,
+        recipientIds: recipientIdList,
         title: json['title']?.toString() ?? '',
         body: json['body']?.toString() ?? '',
         data: json['data'] != null
@@ -195,7 +215,9 @@ class NotificationModel {
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
-      'recipients': recipients.map((recipient) => recipient.toJson()).toList(),
+      'recipients': recipients.isEmpty
+          ? recipientIds
+          : recipients.map((recipient) => recipient.toJson()).toList(),
       'title': title,
       'body': body,
       'data': data?.toJson(),
@@ -210,6 +232,14 @@ class NotificationModel {
           .map((status) => status.toJson())
           .toList(),
     };
+  }
+
+  // Helper method to get all recipient IDs (from both objects and ID list)
+  List<String> getAllRecipientIds() {
+    if (recipientIds.isNotEmpty) {
+      return recipientIds;
+    }
+    return recipients.map((r) => r.id).toList();
   }
 
   // Helper method to check if notification is read by a specific user
@@ -236,6 +266,7 @@ class NotificationModel {
   NotificationModel copyWith({
     String? id,
     List<NotificationRecipient>? recipients,
+    List<String>? recipientIds,
     String? title,
     String? body,
     NotificationData? data,
@@ -251,6 +282,7 @@ class NotificationModel {
     return NotificationModel(
       id: id ?? this.id,
       recipients: recipients ?? this.recipients,
+      recipientIds: recipientIds ?? this.recipientIds,
       title: title ?? this.title,
       body: body ?? this.body,
       data: data ?? this.data,
